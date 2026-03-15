@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fintech AI System Design Guide for Product Managers</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+
+    <header class="hero">
+      <p class="eyebrow">Interactive Learning Guide</p>
+      <h1>Fintech System Design for Product Managers Transitioning to AI</h1>
+      <p class="subtitle">
+        Learn fintech AI system design through interactive architecture maps, compliance
+        tradeoffs, and rollout playbooks for regulated products.
+      </p>
+      <div class="chips" aria-label="Learning outcomes">
+        <span>Map customer jobs to regulated AI architecture</span>
+        <span>Balance latency, cost, quality, fraud, and compliance</span>
+        <span>Launch safely across underwriting, support, and payments</span>
+      </div>
+    </header>
+
+    <nav class="section-nav" aria-label="Guide sections">
+      <a class="nav-tab" href="#web"           data-section="web">Web Basics</a>
+      <a class="nav-tab" href="#apis"          data-section="apis">APIs &amp; Services</a>
+      <a class="nav-tab" href="#ai-blocks"     data-section="ai-blocks">LLM Mechanics</a>
+      <a class="nav-tab" href="#rag"           data-section="rag">RAG Pipeline</a>
+      <a class="nav-tab" href="#agents"        data-section="agents">Agents</a>
+      <a class="nav-tab" href="#stack"         data-section="stack">Product Stack</a>
+      <a class="nav-tab" href="#simulator"     data-section="simulator">Simulator</a>
+      <a class="nav-tab" href="#roadmap"       data-section="roadmap">Roadmap</a>
+      <a class="nav-tab" href="#quiz"          data-section="quiz">Self-Check</a>
+      <a class="nav-tab" href="#learning-path" data-section="learning-path">My Path</a>
+    </nav>
+
+    <main class="container">
+
+      <!-- ═══════════════════ SECTION 1: WEB ═══════════════════ -->
+      <section class="panel" id="web">
+        <h2>1) How a Web Request Works</h2>
+        <p>Every AI product is built on web infrastructure. Before understanding AI systems, PMs must know how data moves from a user's device through servers and back. This lifecycle — browser, edge, server, database — is the same path your model API calls travel on every request.</p>
+        <ul class="section-concepts">
+          <li>A browser initiates HTTP requests; servers respond with data — every LLM API call follows this identical round-trip pattern</li>
+          <li>CDNs cache static assets at geographic edge nodes, reducing latency — critical for global fintech products serving customers across regions</li>
+          <li>Databases persist state between requests — your model context history, audit logs, and customer ledger all live in a database layer</li>
+          <li>In-memory caches (Redis) hold hot data to avoid slow DB reads — PMs track cache-hit rate because it directly controls p95 latency</li>
+        </ul>
+        <div class="arch-diagram">
+          <div class="diag-layout">
+            <div class="diagram-wrap">
+              <svg viewBox="0 0 760 200" role="img" aria-label="Web request flow">
+                <defs>
+                  <marker id="arr-w" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                    <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
+                  </marker>
+                </defs>
+                <!-- browser -->
+                <g class="arch-node node-client" data-diagram="web" data-node="browser" tabindex="0" role="button" aria-label="Browser">
+                  <rect x="20" y="78" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="80" y="96">Browser</text>
+                  <text class="node-sub"   x="80" y="110">HTTP Client</text>
+                </g>
+                <line x1="140" y1="100" x2="175" y2="100" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-w)"/>
+                <text class="arrow-label" x="157" y="93">request</text>
+                <!-- cdn -->
+                <g class="arch-node node-cache" data-diagram="web" data-node="cdn" tabindex="0" role="button" aria-label="CDN">
+                  <rect x="175" y="78" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="235" y="96">CDN</text>
+                  <text class="node-sub"   x="235" y="110">Edge Cache</text>
+                </g>
+                <line x1="295" y1="100" x2="330" y2="100" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-w)"/>
+                <text class="arrow-label" x="312" y="93">miss</text>
+                <!-- server -->
+                <g class="arch-node node-server" data-diagram="web" data-node="server" tabindex="0" role="button" aria-label="App Server">
+                  <rect x="330" y="78" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="390" y="96">App Server</text>
+                  <text class="node-sub"   x="390" y="110">Business Logic</text>
+                </g>
+                <!-- server → db -->
+                <line x1="450" y1="93" x2="490" y2="42" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-w)"/>
+                <!-- db -->
+                <g class="arch-node node-database" data-diagram="web" data-node="db" tabindex="0" role="button" aria-label="Database">
+                  <rect x="490" y="20" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="550" y="38">Database</text>
+                  <text class="node-sub"   x="550" y="52">Persistent Store</text>
+                </g>
+                <!-- server → cache -->
+                <line x1="450" y1="107" x2="490" y2="147" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-w)"/>
+                <!-- cache -->
+                <g class="arch-node node-cache" data-diagram="web" data-node="cache" tabindex="0" role="button" aria-label="Cache">
+                  <rect x="490" y="136" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="550" y="154">Cache</text>
+                  <text class="node-sub"   x="550" y="168">Redis / Memory</text>
+                </g>
+              </svg>
+            </div>
+            <div class="arch-inspector" id="inspector-web">
+              <p class="inspector-placeholder">Click any component to inspect its PM relevance, analogy, and key metrics.</p>
+            </div>
+          </div>
+        </div>
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> When your AI feature is slow, the bottleneck is almost always one of these four layers. Your job is to know which one to ask engineering about — and to have a defined SLO (service-level objective) for each hop before launch.
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 2: APIS ═══════════════════ -->
+      <section class="panel" id="apis">
+        <h2>2) API Gateway &amp; Microservices</h2>
+        <p>Modern fintech products are composed of small, independently deployable services connected by APIs. The gateway is the front door: it enforces auth, rate limits, and routing before any domain service sees the request. PMs must understand this layer because it governs what your AI feature can and cannot do — and who owns the data access.</p>
+        <ul class="section-concepts">
+          <li>The gateway enforces auth and rate limits before any service logic runs — compliance guardrails often live here as middleware</li>
+          <li>Microservices own single domains: auth, KYC, credit policy, payments — AI orchestration must call each with scoped permissions</li>
+          <li>Service-to-service hops add latency — a six-step AI workflow touching three services must budget each call's p95 latency contribution</li>
+          <li>API contracts define what data AI can access — PMs negotiate field-level data access with platform teams before writing the feature spec</li>
+        </ul>
+        <div class="arch-diagram">
+          <div class="diag-layout">
+            <div class="diagram-wrap">
+              <svg viewBox="0 0 760 230" role="img" aria-label="API gateway and microservices">
+                <defs>
+                  <marker id="arr-a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                    <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
+                  </marker>
+                </defs>
+                <!-- client -->
+                <g class="arch-node node-client" data-diagram="apis" data-node="client" tabindex="0" role="button" aria-label="Client App">
+                  <rect x="20" y="88" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="80" y="106">Client App</text>
+                  <text class="node-sub"   x="80" y="120">Mobile / Web</text>
+                </g>
+                <line x1="140" y1="110" x2="185" y2="110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-a)"/>
+                <!-- gateway -->
+                <g class="arch-node node-server" data-diagram="apis" data-node="gateway" tabindex="0" role="button" aria-label="API Gateway">
+                  <rect x="185" y="88" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="245" y="106">API Gateway</text>
+                  <text class="node-sub"   x="245" y="120">Auth + Routing</text>
+                </g>
+                <!-- gateway → auth -->
+                <line x1="305" y1="100" x2="370" y2="40" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-a)"/>
+                <!-- auth -->
+                <g class="arch-node node-server" data-diagram="apis" data-node="auth-service" tabindex="0" role="button" aria-label="Auth Service">
+                  <rect x="370" y="18" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="435" y="36">Auth Service</text>
+                  <text class="node-sub"   x="435" y="50">JWT / OAuth 2</text>
+                </g>
+                <!-- gateway → policy -->
+                <line x1="305" y1="110" x2="370" y2="110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-a)"/>
+                <!-- policy -->
+                <g class="arch-node node-server" data-diagram="apis" data-node="policy-engine" tabindex="0" role="button" aria-label="Policy Engine">
+                  <rect x="370" y="88" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="435" y="106">Policy Engine</text>
+                  <text class="node-sub"   x="435" y="120">KYC / Rules</text>
+                </g>
+                <!-- gateway → product -->
+                <line x1="305" y1="120" x2="370" y2="183" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-a)"/>
+                <!-- product -->
+                <g class="arch-node node-server" data-diagram="apis" data-node="product-service" tabindex="0" role="button" aria-label="Product Service">
+                  <rect x="370" y="163" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="435" y="181">Product Service</text>
+                  <text class="node-sub"   x="435" y="195">Payments / Credit</text>
+                </g>
+                <!-- services → aggregator -->
+                <line x1="500" y1="40"  x2="555" y2="100" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-a)"/>
+                <line x1="500" y1="110" x2="555" y2="110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-a)"/>
+                <line x1="500" y1="183" x2="555" y2="120" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-a)"/>
+                <!-- aggregator -->
+                <g class="arch-node node-server" data-diagram="apis" data-node="aggregator" tabindex="0" role="button" aria-label="Aggregator">
+                  <rect x="555" y="88" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="620" y="106">Aggregator</text>
+                  <text class="node-sub"   x="620" y="120">Compose Response</text>
+                </g>
+              </svg>
+            </div>
+            <div class="arch-inspector" id="inspector-apis">
+              <p class="inspector-placeholder">Click any component to inspect its PM relevance, analogy, and key metrics.</p>
+            </div>
+          </div>
+        </div>
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> Every AI action that touches a customer's account must pass through this stack. "Can we just call the model directly?" — no. Map your AI feature's service dependencies before writing the spec, or you will discover permission blockers in sprint 3.
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 3: LLM MECHANICS ═══════════════════ -->
+      <section class="panel" id="ai-blocks">
+        <h2>3) LLM Mechanics: Tokens, Transformers &amp; Embeddings</h2>
+        <p>Language models convert text to tokens, process them through a transformer, and produce probability distributions over possible next tokens. Embeddings are a parallel path: text becomes a fixed-size vector used for semantic search and retrieval. PMs who understand this can make informed decisions about context windows, inference costs, and retrieval quality.</p>
+        <ul class="section-concepts">
+          <li>Tokens are sub-word units (~0.75 words each) — a 200K token context window holds roughly 150,000 words or a 500-page policy document</li>
+          <li>Transformers use self-attention to weigh every token against every other — this is why long contexts cost more (attention scales quadratically)</li>
+          <li>Embeddings encode semantic meaning as vectors — "similar" text clusters together geometrically, powering semantic search in RAG pipelines</li>
+          <li>Token cost is your primary AI unit-economics lever — every extra word in your system prompt is billable input on every single request</li>
+        </ul>
+        <div class="arch-diagram">
+          <div class="diag-layout">
+            <div class="diagram-wrap">
+              <svg viewBox="0 0 760 220" role="img" aria-label="LLM mechanics: generation and embedding paths">
+                <defs>
+                  <marker id="arr-b" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                    <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
+                  </marker>
+                </defs>
+                <text class="diag-section-label" x="230" y="16">Generation Path</text>
+                <text class="diag-section-label" x="230" y="136">Embedding Path</text>
+                <!-- input -->
+                <g class="arch-node node-client" data-diagram="ai-blocks" data-node="input" tabindex="0" role="button" aria-label="Text Input">
+                  <rect x="20" y="28" width="110" height="44" rx="10"/>
+                  <text class="node-title" x="75" y="46">Text Input</text>
+                  <text class="node-sub"   x="75" y="60">User Prompt</text>
+                </g>
+                <line x1="130" y1="50" x2="162" y2="50" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-b)"/>
+                <!-- tokenizer -->
+                <g class="arch-node node-server" data-diagram="ai-blocks" data-node="tokenizer" tabindex="0" role="button" aria-label="Tokenizer">
+                  <rect x="162" y="28" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="222" y="46">Tokenizer</text>
+                  <text class="node-sub"   x="222" y="60">BPE / tiktoken</text>
+                </g>
+                <line x1="282" y1="50" x2="322" y2="50" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-b)"/>
+                <!-- transformer -->
+                <g class="arch-node node-ai" data-diagram="ai-blocks" data-node="transformer" tabindex="0" role="button" aria-label="Transformer">
+                  <rect x="322" y="28" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="387" y="46">Transformer</text>
+                  <text class="node-sub"   x="387" y="60">Self-Attention</text>
+                </g>
+                <line x1="452" y1="50" x2="500" y2="50" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-b)"/>
+                <!-- output -->
+                <g class="arch-node node-server" data-diagram="ai-blocks" data-node="output" tabindex="0" role="button" aria-label="Token Output">
+                  <rect x="500" y="28" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="560" y="46">Token Output</text>
+                  <text class="node-sub"   x="560" y="60">Sampled Text</text>
+                </g>
+                <!-- dashed: input → embedder -->
+                <line x1="75" y1="72" x2="155" y2="148" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr-b)"/>
+                <!-- embedder -->
+                <g class="arch-node node-ai" data-diagram="ai-blocks" data-node="embedder" tabindex="0" role="button" aria-label="Embedder">
+                  <rect x="162" y="148" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="222" y="166">Embedder</text>
+                  <text class="node-sub"   x="222" y="180">text-embedding</text>
+                </g>
+                <line x1="282" y1="170" x2="322" y2="170" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-b)"/>
+                <!-- vector-store -->
+                <g class="arch-node node-database" data-diagram="ai-blocks" data-node="vector-store" tabindex="0" role="button" aria-label="Vector Store">
+                  <rect x="322" y="148" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="387" y="166">Vector Store</text>
+                  <text class="node-sub"   x="387" y="180">pgvector / Pinecone</text>
+                </g>
+                <!-- dashed: vector-store → transformer (inject context) -->
+                <line x1="452" y1="150" x2="387" y2="72" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr-b)"/>
+                <text class="arrow-label" x="460" y="115">inject context</text>
+              </svg>
+            </div>
+            <div class="arch-inspector" id="inspector-ai-blocks">
+              <p class="inspector-placeholder">Click any component to inspect its PM relevance, analogy, and key metrics.</p>
+            </div>
+          </div>
+        </div>
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> Context window × token price = your AI cost ceiling. Every design decision — how much policy text you retrieve, how long your system prompt is, whether you include conversation history — is simultaneously a cost and latency decision. The PM who owns the token budget owns the P&amp;L.
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 4: RAG ═══════════════════ -->
+      <section class="panel" id="rag">
+        <h2>4) Retrieval-Augmented Generation (RAG)</h2>
+        <p>RAG solves the core fintech AI problem: models don't know your latest credit policy, customer ledger, or KYC guidelines. RAG retrieves the right context at query time and injects it into the prompt, grounding every answer in real, current data. This is the architecture behind every policy assistant, credit copilot, and compliance Q&amp;A tool in financial services.</p>
+        <ul class="section-concepts">
+          <li>The ingestion pipeline runs offline: documents are chunked, embedded, and stored in a vector store — this is not in the query latency path</li>
+          <li>The query pipeline runs in real time: the user's query is embedded, matched against stored vectors, and top-k chunks are injected into the prompt</li>
+          <li>Reranking a cross-encoder model re-scores retrieved chunks for relevance — it adds ~30–80ms but significantly improves precision when policy accuracy is a compliance requirement</li>
+          <li>Data freshness is a risk: stale chunks produce outdated policy answers — your re-ingestion schedule is a product commitment, not an engineering detail</li>
+        </ul>
+        <div class="arch-diagram">
+          <div class="diag-layout">
+            <div class="diagram-wrap">
+              <svg viewBox="0 0 760 256" role="img" aria-label="RAG pipeline: ingestion and query">
+                <defs>
+                  <marker id="arr-r" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                    <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
+                  </marker>
+                </defs>
+                <text class="diag-section-label" x="20" y="14">Ingestion Pipeline (offline)</text>
+                <text class="diag-section-label" x="20" y="162">Query Pipeline (real-time)</text>
+
+                <!-- INGESTION ROW -->
+                <g class="arch-node node-client" data-diagram="rag" data-node="docs" tabindex="0" role="button" aria-label="Source Documents">
+                  <rect x="10" y="20" width="110" height="44" rx="10"/>
+                  <text class="node-title" x="65" y="38">Source Docs</text>
+                  <text class="node-sub"   x="65" y="52">Policy / Ledger</text>
+                </g>
+                <line x1="120" y1="42" x2="148" y2="42" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-r)"/>
+                <g class="arch-node node-server" data-diagram="rag" data-node="chunker" tabindex="0" role="button" aria-label="Chunker">
+                  <rect x="148" y="20" width="110" height="44" rx="10"/>
+                  <text class="node-title" x="203" y="38">Chunker</text>
+                  <text class="node-sub"   x="203" y="52">Split + Overlap</text>
+                </g>
+                <line x1="258" y1="42" x2="286" y2="42" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-r)"/>
+                <g class="arch-node node-ai" data-diagram="rag" data-node="embedder-ing" tabindex="0" role="button" aria-label="Embedder (ingestion)">
+                  <rect x="286" y="20" width="122" height="44" rx="10"/>
+                  <text class="node-title" x="347" y="38">Embedder</text>
+                  <text class="node-sub"   x="347" y="52">Batch Encoding</text>
+                </g>
+                <line x1="408" y1="42" x2="438" y2="42" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-r)"/>
+                <g class="arch-node node-database" data-diagram="rag" data-node="vector-db" tabindex="0" role="button" aria-label="Vector Database">
+                  <rect x="438" y="20" width="122" height="44" rx="10"/>
+                  <text class="node-title" x="499" y="38">Vector Store</text>
+                  <text class="node-sub"   x="499" y="52">pgvector / Qdrant</text>
+                </g>
+
+                <!-- QUERY ROW -->
+                <g class="arch-node node-client" data-diagram="rag" data-node="query" tabindex="0" role="button" aria-label="User Query">
+                  <rect x="10" y="172" width="100" height="44" rx="10"/>
+                  <text class="node-title" x="60" y="190">User Query</text>
+                  <text class="node-sub"   x="60" y="204">Question</text>
+                </g>
+                <line x1="110" y1="194" x2="133" y2="194" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-r)"/>
+                <g class="arch-node node-server" data-diagram="rag" data-node="retriever" tabindex="0" role="button" aria-label="Retriever">
+                  <rect x="133" y="172" width="108" height="44" rx="10"/>
+                  <text class="node-title" x="187" y="190">Retriever</text>
+                  <text class="node-sub"   x="187" y="204">ANN Search</text>
+                </g>
+                <line x1="241" y1="194" x2="266" y2="194" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-r)"/>
+                <g class="arch-node node-ai" data-diagram="rag" data-node="reranker" tabindex="0" role="button" aria-label="Reranker">
+                  <rect x="266" y="172" width="108" height="44" rx="10"/>
+                  <text class="node-title" x="320" y="190">Reranker</text>
+                  <text class="node-sub"   x="320" y="204">Cross-Encoder</text>
+                </g>
+                <line x1="374" y1="194" x2="399" y2="194" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-r)"/>
+                <g class="arch-node node-ai" data-diagram="rag" data-node="llm" tabindex="0" role="button" aria-label="LLM">
+                  <rect x="399" y="172" width="100" height="44" rx="10"/>
+                  <text class="node-title" x="449" y="190">LLM</text>
+                  <text class="node-sub"   x="449" y="204">Generation</text>
+                </g>
+                <line x1="499" y1="194" x2="524" y2="194" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-r)"/>
+                <g class="arch-node node-server" data-diagram="rag" data-node="rag-response" tabindex="0" role="button" aria-label="RAG Response">
+                  <rect x="524" y="172" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="584" y="190">Response</text>
+                  <text class="node-sub"   x="584" y="204">Grounded Answer</text>
+                </g>
+                <!-- vector-db → retriever (dashed cross arrow) -->
+                <line x1="499" y1="64" x2="187" y2="172" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr-r)"/>
+                <text class="arrow-label" x="370" y="115">retrieve top-k</text>
+              </svg>
+            </div>
+            <div class="arch-inspector" id="inspector-rag">
+              <p class="inspector-placeholder">Click any component to inspect its PM relevance, analogy, and key metrics.</p>
+            </div>
+          </div>
+        </div>
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> In fintech, RAG quality equals compliance quality. Your cited-answer coverage rate, chunk freshness SLA, and retrieval precision are product KPIs — not just engineering metrics. Own the data pipeline that feeds RAG, or you will discover stale policies in a customer complaint.
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 5: AGENTS ═══════════════════ -->
+      <section class="panel" id="agents">
+        <h2>5) Agentic AI Systems</h2>
+        <p>Agents extend LLMs with the ability to plan, use tools, and act across multiple steps autonomously. A fintech agent might check a customer's ledger, verify a policy, call a payment API, and produce a compliance log — without a human in the loop. PMs must understand the reliability math: each step introduces failure probability, and agents multiply these risks. Six steps at 85% reliability each yields only 37% end-to-end success (0.85&#x2076; ≈ 0.377).</p>
+        <ul class="section-concepts">
+          <li>The ReAct loop (Reason + Act) is the core agent pattern: the LLM observes state, reasons about what tool to call, acts, observes the result, and repeats until the goal is met</li>
+          <li>Tool calls are deterministic wrappers around external systems — idempotency and maker-checker approvals are non-negotiable when tools execute real financial actions</li>
+          <li>Memory maintains state across reasoning steps — short-term context in the prompt, long-term facts in a database the agent can query</li>
+          <li>Human-in-the-loop checkpoints are a PM decision: define exactly where the agent must pause for human approval before executing irreversible actions</li>
+        </ul>
+        <div class="arch-diagram">
+          <div class="diag-layout">
+            <div class="diagram-wrap">
+              <svg viewBox="0 0 760 275" role="img" aria-label="Agentic AI system with ReAct loop">
+                <defs>
+                  <marker id="arr-g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                    <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
+                  </marker>
+                </defs>
+                <!-- goal -->
+                <g class="arch-node node-client" data-diagram="agents" data-node="goal" tabindex="0" role="button" aria-label="Customer Goal">
+                  <rect x="15" y="113" width="100" height="44" rx="10"/>
+                  <text class="node-title" x="65" y="131">Customer</text>
+                  <text class="node-sub"   x="65" y="145">Goal / Intent</text>
+                </g>
+                <line x1="115" y1="135" x2="140" y2="135" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <!-- planner -->
+                <g class="arch-node node-ai" data-diagram="agents" data-node="planner" tabindex="0" role="button" aria-label="Planner LLM">
+                  <rect x="140" y="113" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="200" y="131">Planner (LLM)</text>
+                  <text class="node-sub"   x="200" y="145">Reason + Act</text>
+                </g>
+                <!-- planner → tools -->
+                <line x1="260" y1="123" x2="300" y2="40"  stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <line x1="260" y1="128" x2="300" y2="100" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <line x1="260" y1="142" x2="300" y2="180" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <line x1="260" y1="147" x2="300" y2="240" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <!-- tool-web -->
+                <g class="arch-node node-server" data-diagram="agents" data-node="tool-web" tabindex="0" role="button" aria-label="Web Search Tool">
+                  <rect x="300" y="18" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="365" y="36">Web Search</text>
+                  <text class="node-sub"   x="365" y="50">Rates / News</text>
+                </g>
+                <!-- tool-db -->
+                <g class="arch-node node-database" data-diagram="agents" data-node="tool-db" tabindex="0" role="button" aria-label="Ledger Query Tool">
+                  <rect x="300" y="78" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="365" y="96">Ledger Query</text>
+                  <text class="node-sub"   x="365" y="110">Account Data</text>
+                </g>
+                <!-- tool-api -->
+                <g class="arch-node node-server" data-diagram="agents" data-node="tool-api" tabindex="0" role="button" aria-label="Payment API Tool">
+                  <rect x="300" y="158" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="365" y="176">Payment API</text>
+                  <text class="node-sub"   x="365" y="190">Execute Action</text>
+                </g>
+                <!-- tool-code -->
+                <g class="arch-node node-server" data-diagram="agents" data-node="tool-code" tabindex="0" role="button" aria-label="Code Execution Tool">
+                  <rect x="300" y="218" width="130" height="44" rx="10"/>
+                  <text class="node-title" x="365" y="236">Code Execution</text>
+                  <text class="node-sub"   x="365" y="250">Compute / Format</text>
+                </g>
+                <!-- tools → memory -->
+                <line x1="430" y1="40"  x2="470" y2="123" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <line x1="430" y1="100" x2="470" y2="128" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <line x1="430" y1="180" x2="470" y2="142" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <line x1="430" y1="240" x2="470" y2="147" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <!-- memory -->
+                <g class="arch-node node-database" data-diagram="agents" data-node="memory" tabindex="0" role="button" aria-label="Agent Memory">
+                  <rect x="470" y="113" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="530" y="131">Memory</text>
+                  <text class="node-sub"   x="530" y="145">Context Store</text>
+                </g>
+                <line x1="590" y1="135" x2="630" y2="135" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+                <!-- agent-response -->
+                <g class="arch-node node-server" data-diagram="agents" data-node="agent-response" tabindex="0" role="button" aria-label="Agent Response">
+                  <rect x="630" y="113" width="110" height="44" rx="10"/>
+                  <text class="node-title" x="685" y="131">Response</text>
+                  <text class="node-sub"   x="685" y="145">+ Audit Log</text>
+                </g>
+              </svg>
+            </div>
+            <div class="arch-inspector" id="inspector-agents">
+              <p class="inspector-placeholder">Click any component to inspect its PM relevance, analogy, and key metrics.</p>
+            </div>
+          </div>
+        </div>
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> Agent reliability degrades with every step. Define your maximum autonomous action boundary before engineering does. In a payments or credit agent, the question is not "can the agent do this?" — it is "should it, without a human checkpoint?" Write this boundary into the acceptance criteria.
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 6: PRODUCT STACK ═══════════════════ -->
+      <section class="panel" id="stack">
+        <h2>6) Mental Model: Fintech AI Product Stack</h2>
+        <p>Think in layers: <strong>Customer Journey</strong> → <strong>Risk &amp; Policy Logic</strong> → <strong>Model Orchestration</strong> → <strong>Data, Ledger &amp; Feedback</strong> → <strong>Platform, Security &amp; Governance</strong>. PM ownership spans all five. Click any component below to inspect PM goals, metrics, and failure modes.</p>
+        <div class="diagram-layout">
+          <div class="diagram" role="list" aria-label="Fintech AI lifecycle components">
+            <button class="node active" data-node="entry"    role="listitem">Customer Intent</button>
+            <button class="node"        data-node="safety"   role="listitem">KYC/AML Guardrails</button>
+            <button class="node"        data-node="router"   role="listitem">Risk Router</button>
+            <button class="node"        data-node="retrieval" role="listitem">Policy + Ledger Retrieval</button>
+            <button class="node"        data-node="model"    role="listitem">Decision Model</button>
+            <button class="node"        data-node="tools"    role="listitem">Core Banking APIs</button>
+            <button class="node"        data-node="response" role="listitem">Decision Explanation</button>
+            <button class="node"        data-node="feedback" role="listitem">Monitoring &amp; Audit Loop</button>
+          </div>
+          <article class="inspector" aria-live="polite">
+            <h3 id="node-title"></h3>
+            <p  id="node-purpose"></p>
+            <dl>
+              <dt>Key PM Metric</dt>   <dd id="node-metric"></dd>
+              <dt>Common Risk</dt>      <dd id="node-risk"></dd>
+              <dt>PM Decision Lever</dt><dd id="node-lever"></dd>
+            </dl>
+          </article>
+        </div>
+        <div class="stack-grid" style="margin-top:14px">
+          <article><h3>Customer Journey</h3><p>Onboarding, servicing, disputes, collections, and clear disclosure UX.</p></article>
+          <article><h3>Risk &amp; Policy Logic</h3><p>KYC, AML, sanctions checks, credit policy rules, and approval routing.</p></article>
+          <article><h3>Model Orchestration</h3><p>Prompting, model routing, retrieval, and tool calls for decision workflows.</p></article>
+          <article><h3>Data, Ledger &amp; Feedback</h3><p>Transaction history, risk signals, support logs, labels, and analyst review.</p></article>
+          <article><h3>Platform &amp; Governance</h3><p>Audit trails, model monitoring, data controls, reliability, and cost limits.</p></article>
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 7: SIMULATOR ═══════════════════ -->
+      <section class="panel" id="simulator">
+        <h2>7) Tradeoff Simulator: Pick Your Fintech Design Pattern</h2>
+        <p>Move the sliders to reflect your product constraints. The simulator suggests architecture direction and implementation priorities for regulated fintech launches.</p>
+        <div class="sim-grid">
+          <label>Latency Sensitivity     <input type="range" id="latency" min="1" max="5" value="3"/></label>
+          <label>Cost Pressure           <input type="range" id="cost"    min="1" max="5" value="3"/></label>
+          <label>Quality Bar             <input type="range" id="quality" min="1" max="5" value="4"/></label>
+          <label>Risk/Compliance Need    <input type="range" id="risk"    min="1" max="5" value="4"/></label>
+        </div>
+        <article class="recommendation">
+          <h3 id="pattern-name">Pattern recommendation appears here</h3>
+          <p  id="pattern-reason"></p>
+          <ul id="pattern-actions"></ul>
+        </article>
+      </section>
+
+      <!-- ═══════════════════ SECTION 8: ROADMAP ═══════════════════ -->
+      <section class="panel" id="roadmap">
+        <h2>8) PM Transition Roadmap (30-60-90)</h2>
+        <div class="timeline">
+          <article>
+            <h3>First 30 Days</h3>
+            <ul>
+              <li>Map one fintech journey end-to-end: onboarding, support, or collections.</li>
+              <li>Review your KYC/AML, sanctions, privacy, and audit requirements.</li>
+              <li>Define launch metrics: assisted resolution rate, escalation rate, policy incidents.</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Days 31–60</h3>
+            <ul>
+              <li>Ship a narrow pilot for a low-risk segment with deterministic fallbacks.</li>
+              <li>Stand up offline evals for fairness, explainability, and policy adherence.</li>
+              <li>Add dashboards for precision, latency, fraud flags, and complaint volume.</li>
+            </ul>
+          </article>
+          <article>
+            <h3>Days 61–90</h3>
+            <ul>
+              <li>Expand to additional segments and higher-value workflows with phased limits.</li>
+              <li>Run a weekly model risk and incident review with compliance stakeholders.</li>
+              <li>Create a quarterly roadmap across model quality, controls, and operating cost.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 9: QUIZ ═══════════════════ -->
+      <section class="panel" id="quiz">
+        <h2>9) Self-Check: Fintech PM + System Design Fluency</h2>
+        <form id="quiz-form">
+          <fieldset>
+            <legend>For a credit-policy assistant, when should you prioritise retrieval over model size?</legend>
+            <label><input type="radio" name="q1" value="A"/> When policy freshness, explainability, and source traceability are required</label>
+            <label><input type="radio" name="q1" value="B"/> Only when model inference is already under 100 ms</label>
+            <label><input type="radio" name="q1" value="C"/> Never — larger models remove policy risk automatically</label>
+          </fieldset>
+          <fieldset>
+            <legend>Best primary metric pair for a fintech AI servicing launch?</legend>
+            <label><input type="radio" name="q2" value="A"/> Session count + tokens consumed</label>
+            <label><input type="radio" name="q2" value="B"/> First-contact resolution rate + policy violation rate</label>
+            <label><input type="radio" name="q2" value="C"/> Prompt length + model parameter count</label>
+          </fieldset>
+          <fieldset>
+            <legend>What is the strongest rollback trigger in a payments copilot rollout?</legend>
+            <label><input type="radio" name="q3" value="A"/> Minor weekly increase in cloud bill</label>
+            <label><input type="radio" name="q3" value="B"/> Single missed intent classification with no customer impact</label>
+            <label><input type="radio" name="q3" value="C"/> Breach of a predefined compliance or fraud threshold</label>
+          </fieldset>
+          <fieldset>
+            <legend>A 6-step agent where each step is 85% reliable has what end-to-end success rate?</legend>
+            <label><input type="radio" name="q4" value="A"/> 85% — reliability stays constant across sequential steps</label>
+            <label><input type="radio" name="q4" value="B"/> ~37% — reliability compounds multiplicatively (0.85⁶ ≈ 0.377)</label>
+            <label><input type="radio" name="q4" value="C"/> ~51% — reliability degrades linearly at ~5.6% per step</label>
+          </fieldset>
+          <fieldset>
+            <legend>Your RAG system is giving customers outdated credit policy answers. Most likely root cause?</legend>
+            <label><input type="radio" name="q5" value="A"/> The LLM context window is too small to hold the policy text</label>
+            <label><input type="radio" name="q5" value="B"/> Chunks in the vector store are stale — the re-ingestion schedule is too infrequent</label>
+            <label><input type="radio" name="q5" value="C"/> The embedding model is too small to encode policy semantics</label>
+          </fieldset>
+          <button type="submit" class="primary">Check Score</button>
+        </form>
+        <p id="quiz-result" aria-live="polite"></p>
+      </section>
+
+      <!-- ═══════════════════ SECTION 10: LEARNING PATH ═══════════════════ -->
+      <section class="panel" id="learning-path">
+        <h2>10) Your Personalised AI PM Learning Path</h2>
+        <p>Tell us about yourself and Claude Opus will generate a highly specific 12-week learning plan tailored to your role, domain, and goals. Enter your Anthropic API key below — it stays in your browser and is never sent anywhere except directly to Anthropic.</p>
+        <form id="lp-form">
+          <div class="lp-form-grid">
+            <label style="grid-column:1/-1">Anthropic API key <span class="lp-hint">(starts with sk-ant-… — stored only in this tab, never logged)</span>
+              <input type="password" name="apiKey" placeholder="sk-ant-api03-…" required autocomplete="off" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:0.9rem;color:var(--text);background:#fff;outline:none;" />
+            </label>
+            <label>Your role
+              <select name="role" required>
+                <option value="">Select…</option>
+                <option>Associate PM</option>
+                <option>Product Manager</option>
+                <option>Senior PM</option>
+                <option>Group PM / Director</option>
+                <option>Head of Product / VP</option>
+                <option>CPO</option>
+              </select>
+            </label>
+            <label>Current AI/ML experience
+              <select name="experience" required>
+                <option value="">Select…</option>
+                <option>None — completely new to AI</option>
+                <option>Basic — know the concepts, haven't shipped AI features</option>
+                <option>Moderate — shipped 1–2 AI features, understand the stack</option>
+                <option>Strong — shipped multiple AI products, comfortable with evals</option>
+              </select>
+            </label>
+            <label>Primary product domain
+              <select name="domain" required>
+                <option value="">Select…</option>
+                <option>Consumer Lending / Credit</option>
+                <option>Payments &amp; Money Movement</option>
+                <option>KYC / AML / Identity</option>
+                <option>Customer Servicing &amp; Support</option>
+                <option>Fraud Detection &amp; Prevention</option>
+                <option>Wealth Management / Investments</option>
+                <option>Insurance</option>
+                <option>B2B / Enterprise Fintech</option>
+              </select>
+            </label>
+            <label>Your top learning goal <span class="lp-hint">(be specific — e.g. "ship a policy RAG assistant for credit underwriters by Q3")</span>
+              <textarea name="goals" rows="3" placeholder="Describe what you want to be able to do in 12 weeks…" required></textarea>
+            </label>
+          </div>
+          <button type="submit" class="primary" id="lp-submit">Generate my 12-week plan →</button>
+        </form>
+        <div id="lp-output" class="lp-output" aria-live="polite">
+          <div class="lp-placeholder">Your personalised learning path will stream in here.</div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>Use this guide as a living fintech artifact: align it with your regulator expectations, risk appetite, and product segment every quarter.</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
