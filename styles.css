@@ -30,7 +30,7 @@ body {
 .hero,
 .container,
 .footer {
-  width: min(1020px, 92vw);
+  width: min(1280px, 96vw);
   margin: 0 auto;
 }
 
@@ -86,7 +86,7 @@ h1 {
   border-bottom: 1px solid var(--line);
   display: flex;
   gap: 4px;
-  padding: 8px max(16px, calc((100vw - 1020px) / 2));
+  padding: 8px max(16px, calc((100vw - 1280px) / 2));
   overflow-x: auto;
   scrollbar-width: none;
 }
