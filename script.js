@@ -1,121 +1,3 @@
-/* ─── Section 6: Product Stack node data ─── */
-const nodeData = {
-  entry: {
-    title: "Customer Intent Intake",
-    purpose: "Capture customer goal, account context, AA consent status, and Aadhaar-verified identity boundary before any AI action.",
-    metric: "Intent-to-resolution rate",
-    risk: "Missing AA consent or failed Aadhaar verification causing wrong financial action on customer account",
-    lever: "Segment-aware intake flows, mandatory AA consent confirmation, and V-KYC status checks before AI routing",
-  },
-  safety: {
-    title: "KYC / AML / PMLA Guardrails",
-    purpose: "Apply CKYC registry checks, Aadhaar eKYC, AML/PMLA transaction monitoring, OFAC/UN sanctions screening, and DPDP Act consent validation before and after generation.",
-    metric: "Regulatory policy breach rate",
-    risk: "Non-compliant AI outputs in RBI-regulated flows — especially under Digital Lending Guidelines 2022 and PMLA obligations",
-    lever: "CKYC registry APIs, PMLA transaction classifiers, RBI-mandated human escalation paths, and DPDP Act consent gates",
-  },
-  router: {
-    title: "Risk-Based Routing",
-    purpose: "Route requests by RBI-defined risk tier: deterministic BRE for standard servicing, narrow model for supervised NBFC credit queries, expert review for high-value decisions.",
-    metric: "Approved decision cost per case",
-    risk: "High-risk NBFC credit cases processed through low-control automated path — violating RBI's risk-proportionate supervision expectations",
-    lever: "CIBIL/Experian bureau score confidence gates, transaction value thresholds, and route-level SLOs for each risk tier",
-  },
-  retrieval: {
-    title: "Policy + Ledger + AA Data Retrieval",
-    purpose: "Fetch current RBI Master Directions, NBFC credit policies, AA-consented financial data (bank statements, salary credits), and CKYC records to ground every AI response.",
-    metric: "Cited-answer coverage",
-    risk: "Stale RBI circular chunks or lapsed AA consent producing incorrect policy recommendations",
-    lever: "AA consent freshness SLAs, CKYC access controls, incremental re-ingestion on RBI circular updates, and semantic reranking on regulatory text",
-  },
-  model: {
-    title: "Decision Intelligence Model",
-    purpose: "Generate credit explanations, loan eligibility assessments, and next-best actions constrained by RBI Fair Practices Code and NBFC-specific credit policy rules.",
-    metric: "Decision accuracy under RBI policy constraints",
-    risk: "Uneven credit decision quality across income segments — potential violation of RBI Fair Practices Code and NBFC corporate governance norms",
-    lever: "Model portfolio strategy, prompt governance versioning, and RBI-aligned fairness eval gates across CIBIL score bands and geographic tiers",
-  },
-  tools: {
-    title: "NPCI / Core Banking APIs",
-    purpose: "Execute deterministic actions via NPCI rails: UPI payment initiation, NACH mandate creation, IMPS transfer, loan disbursement via CBS — all through RBI-licensed payment infrastructure.",
-    metric: "Action success rate with zero unauthorised transactions on NPCI rails",
-    risk: "Incorrect UPI or NACH transaction side effects with limited reversibility — triggers NPCI dispute and potential RBI scrutiny",
-    lever: "NPCI API scoped permissions, maker-checker approval flows, mandatory idempotency keys on every UPI/NACH API call",
-  },
-  response: {
-    title: "Decision Explanation Layer",
-    purpose: "Convert model and NPCI/CBS outputs into customer-safe explanations with RBI-required MITC disclosures, traceable source references, and Grievance Redressal Officer (GRO) links.",
-    metric: "Customer trust score + assisted resolution rate",
-    risk: "Overconfident credit decision language without source traceability — direct violation of RBI Digital Lending Guidelines 2022 Section 10",
-    lever: "MITC citations, confidence labels, RBI-mandated GRO escalation UX, and audit trail linking every explanation to the source policy version",
-  },
-  feedback: {
-    title: "Monitoring, Audit & RBI Review Loop",
-    purpose: "Evaluate decision quality, segment-level fairness, PMLA leakage, DPDP Act data handling, and RBI policy compliance from live production signals.",
-    metric: "Pre-release regression catch rate",
-    risk: "Drift in credit or PMLA compliance behaviour across customer tiers — triggers RBI inspection under NBFC supervisory framework",
-    lever: "Golden eval datasets, immutable RBI-format audit trails, monthly model risk committee reviews with compliance stakeholders",
-  },
-};
-
-/* ─── Section 7: Tradeoff Simulator patterns ─── */
-const patterns = [
-  {
-    name: "UPI Real-Time Servicing Copilot",
-    when: (v) => v.latency >= 4 && v.risk <= 3,
-    reason:
-      "You need sub-second UPI support flows where NPCI SLOs demand p95 < 300ms. Favour low-latency intent routing with deterministic NACH / UPI fallback paths.",
-    actions: [
-      "Cache top-20 UPI dispute intents; BRE handles amounts < ₹10,000 without model call",
-      "Gate NACH debit reversals and UPI mandates above ₹50,000 behind human confirmation",
-      "Set NPCI-aligned SLO budgets per route: dispute lookup ≤ 150ms, UPI status check ≤ 200ms",
-    ],
-  },
-  {
-    name: "RBI-Compliant Digital Lending Assistant",
-    when: (v) => v.risk >= 4,
-    reason:
-      "RBI Digital Lending Guidelines 2022 and PMLA obligations dominate. Architect for full auditability, CKYC checks, and MITC-compliant output before any scale decision.",
-    actions: [
-      "Run CKYC registry lookup, Aadhaar eKYC validation, and PMLA transaction screening pre- and post-generation",
-      "Require RBI Master Direction citations and compliance analyst approval for any loan decision output",
-      "Track MITC disclosure rate, LSP policy breach rate, and GRO escalation SLA as release gates",
-    ],
-  },
-  {
-    name: "NBFC Underwriting Intelligence",
-    when: (v) => v.quality >= 4 && v.cost <= 3,
-    reason:
-      "Credit quality is strategic for your NBFC and budget allows deep orchestration — AA data pull, bureau enrichment, and champion/challenger model experiments.",
-    actions: [
-      "Pull AA-consented bank statements (FIP → FIU) + CIBIL/Experian bureau scores as grounding context",
-      "Evaluate fairness across CIBIL score bands (< 650, 650–749, 750+) and geographic tiers (metro vs. Tier 2/3)",
-      "Run champion/challenger experiments on BRE routing thresholds and prompt-level credit policy rules",
-    ],
-  },
-  {
-    name: "Cost-Efficient Bharat Operations Assistant",
-    when: (v) => v.cost >= 4,
-    reason:
-      "Unit economics are tight for Tier 2/3 India volume. Reserve expensive model calls for complex cases; BRE templates handle the high-frequency, low-complexity tail.",
-    actions: [
-      "Gate model calls behind confidence score + loan value threshold (e.g. only invoke LLM for queries > ₹1 lakh or confidence < 0.7)",
-      "Use BRE + deterministic templates for top-10 repetitive servicing intents (EMI date change, NOC request, statement download)",
-      "Track cost per resolved case in ₹, cost per prevented RBI regulatory breach, and NACH mandate success rate",
-    ],
-  },
-  {
-    name: "Account Aggregator RAG Assistant",
-    when: () => true,
-    reason:
-      "A practical starting point for India fintech PM teams: AA-consented financial data retrieval, RBI AA Master Direction compliance, and grounded responses with manageable spend.",
-    actions: [
-      "Start with AA consent-gated bank statement retrieval + RBI Master Direction vector store + single model + PMLA guardrail layer",
-      "Define latency/quality/compliance SLOs before launch: AA data pull ≤ 2s, retrieval precision@5 > 0.85, MITC disclosure rate 100%",
-      "Run weekly eval against RBI circular updates and monthly model risk committee review with NBFC compliance stakeholders",
-    ],
-  },
-];
 
 /* ─── SVG Diagram Inspector Data ─── */
 const diagramData = {
@@ -473,69 +355,90 @@ const diagramData = {
       slo: "100% of NBFC agent actions logged with NPCI/CBS tool, AA data category, BRE output, MITC version, model version, and timestamp",
     },
   },
+
+  stack: {
+    entry: {
+      type: "client",
+      title: "Customer Intent Intake",
+      desc: "Capture the customer's goal, account context, AA consent status, and Aadhaar-verified identity boundary before any AI action is taken. This is the intake boundary — what the customer brings in determines everything downstream.",
+      analogy: "The Jan Dhan account holder at a BC (Business Correspondent) kiosk: customer-facing, handles display, and forwards the request to the NBFC back-office with KYC and consent already confirmed.",
+      pmInsight: "Missing AA consent or failed Aadhaar verification at intake causes wrong financial actions downstream. Use segment-aware intake flows with mandatory AA consent confirmation and V-KYC status checks before routing to the AI pipeline.",
+      questions: ["Does the intake flow confirm AA consent scope and Aadhaar/V-KYC status before routing to the AI pipeline?", "What is the fallback experience when V-KYC verification fails or the customer hasn't yet completed AA consent?"],
+      metric: "Intent-to-correct-route rate",
+      slo: "> 95% of intents correctly classified and routed without human re-routing",
+    },
+    safety: {
+      type: "server",
+      title: "KYC / AML / PMLA Guardrails",
+      desc: "Apply CKYC registry checks, Aadhaar eKYC, AML/PMLA transaction monitoring, OFAC/UN sanctions screening, and DPDP Act consent validation before and after generation. Both pre-model (input gate) and post-model (output gate) checks are required.",
+      analogy: "The NBFC compliance officer's pre-approval checklist: every customer interaction is screened for PMLA watchlists, CKYC status, and DPDP Act consent validity before any AI recommendation is shown.",
+      pmInsight: "The guardrail layer must run pre-model (to restrict input scope and enforce RBI eligibility criteria) and post-model (to validate output safety and MITC compliance). Treating it as an afterthought is the most common architecture mistake in Indian regulated AI.",
+      questions: ["Does the guardrail run both pre-model (eligibility gate) and post-model (MITC compliance check)?", "How quickly can new RBI Master Direction rules be deployed into the guardrail BRE without a model retrain?"],
+      metric: "Regulatory policy breach detection rate",
+      slo: "< 0.1% undetected RBI or PMLA policy breach at launch; 100% DPDP consent validated before model access",
+    },
+    router: {
+      type: "server",
+      title: "Risk-Based Routing",
+      desc: "Route requests by RBI-defined risk tier: deterministic BRE for standard servicing queries, narrow model for supervised NBFC credit queries, expert human review for high-value or low-bureau-confidence decisions.",
+      analogy: "The NBFC credit committee routing desk: low-value standard requests go straight to the BRE, medium-risk queries to the AI underwriting model, high-value or low-CIBIL-score cases to a human credit officer.",
+      pmInsight: "High-risk NBFC credit cases processed through a low-control automated path violate RBI's risk-proportionate supervision expectations. Route-level SLOs — latency, quality, and compliance thresholds — must be defined per tier before launch.",
+      questions: ["What CIBIL score band or loan value threshold triggers escalation from BRE to AI model to human review?", "Are route-level SLOs (latency, quality, compliance) defined and monitored separately for each risk tier?"],
+      metric: "Approved decision cost per case by tier",
+      slo: "100% of bureau-score-below-threshold or high-value decisions routed for human review; BRE handles > 60% of standard servicing intents",
+    },
+    retrieval: {
+      type: "database",
+      title: "Policy + Ledger + AA Data Retrieval",
+      desc: "Fetch current RBI Master Directions, NBFC credit policies, AA-consented financial data (bank statements, salary credits), and CKYC records to ground every AI response in authoritative, consent-gated data.",
+      analogy: "The NBFC relationship manager assembling the credit file before the credit committee meets: AA bank statements, CBS loan history, CIBIL bureau score, and the applicable RBI Master Direction clause — all confirmed before the decision is made.",
+      pmInsight: "Retrieval latency is on the AI pipeline's critical path. AA FIP data pull can take 2–5s for some banks. Set individual p95 SLOs for AA pull, CKYC lookup, CIBIL API, and vector store RBI policy search. Stale AA consent or expired CKYC must be caught here, not after the model call.",
+      questions: ["What is the p95 latency for AA FIP data pull from your top-5 partner banks?", "Are stale AA consent tokens and expired CKYC records caught at retrieval time before entering the model context?"],
+      metric: "Cited-answer coverage and AA data freshness rate",
+      slo: "< 3s AA FIP pull p95; RBI circular index freshness ≤ 24h; retrieval precision@5 > 0.85",
+    },
+    model: {
+      type: "ai",
+      title: "Decision Intelligence Model",
+      desc: "Generate credit explanations, loan eligibility assessments, and next-best actions constrained by RBI Fair Practices Code and NBFC-specific credit policy rules encoded in the prompt and BRE guardrails.",
+      analogy: "The NBFC credit analyst: reads the full AA bank statement and bureau report, weighs every transaction pattern, and generates a nuanced credit assessment — within the bounds of the RBI-approved credit policy.",
+      pmInsight: "Set temperature to 0.0–0.2 for any output that constitutes a credit decision or MITC disclosure. Model inference is typically 60–80% of end-to-end latency. AA bank statement context (3,000–5,000 tokens) is your biggest cost driver — audit this before setting NBFC underwriting SLOs.",
+      questions: ["Is temperature ≤ 0.2 for all credit decision and MITC disclosure outputs?", "What is the p95 inference latency at your AA bank statement token volume (typically 3,000–5,000 tokens)?"],
+      metric: "Decision accuracy under RBI policy constraints",
+      slo: "Temperature ≤ 0.2 for credit outputs; p95 inference < 3s for NBFC servicing flows",
+    },
+    tools: {
+      type: "server",
+      title: "NPCI / Core Banking APIs",
+      desc: "Execute deterministic financial actions via NPCI rails: UPI payment initiation, NACH mandate creation, IMPS transfer, loan disbursement via CBS — all through RBI-licensed payment infrastructure with idempotency keys and maker-checker controls.",
+      analogy: "The NBFC payments and disbursement desk: every UPI transfer, NACH mandate, and loan credit is executed with a formal instruction ticket, idempotency key, and maker-checker sign-off — no side effects without explicit approval.",
+      pmInsight: "Define the exact NPCI and CBS API surface the AI can call before engineering starts. Every CBS field the AI reads is a data governance decision; every UPI/NACH action it initiates is an RBI risk decision. These boundaries belong in the feature spec, not the sprint backlog.",
+      questions: ["Which NPCI/CBS endpoints can the AI call autonomously vs. with maker-checker human approval?", "Are all AI-initiated UPI and NACH transactions covered by a unique idempotency key per NPCI standards?"],
+      metric: "Action success rate with zero unauthorised NPCI transactions",
+      slo: "Zero AI-initiated actions outside defined NPCI/CBS permission scope; 100% idempotency key coverage on all NACH/UPI calls",
+    },
+    response: {
+      type: "client",
+      title: "MITC Response & Explanation",
+      desc: "Convert model and NPCI/CBS outputs into customer-safe explanations with RBI-required MITC disclosures, traceable source references, and Grievance Redressal Officer (GRO) links as mandated by Digital Lending Guidelines 2022.",
+      analogy: "The NBFC loan officer handing over the sanction letter with the MITC document: clear, traceable, with the GRO contact for disputes — no ambiguous credit language, no ungrounded claims.",
+      pmInsight: "Overconfident credit decision language without source traceability is a direct violation of RBI Digital Lending Guidelines 2022 Section 10. Every customer-facing credit statement must cite the source policy version and offer a GRO escalation path.",
+      questions: ["Does every AI-generated credit explanation include MITC citations and a GRO escalation link as required by DLG 2022?", "What confidence label or disclaimer is shown when the model's credit explanation has low retrieval grounding?"],
+      metric: "MITC disclosure rate and customer trust score",
+      slo: "100% MITC disclosure rate; GRO link present in 100% of credit decision responses",
+    },
+    feedback: {
+      type: "ai",
+      title: "Monitoring, Audit & RBI Review Loop",
+      desc: "Evaluate decision quality, segment-level fairness across CIBIL bands, PMLA leakage, DPDP Act data handling, and RBI policy compliance from live production signals — feeding results into the next model and BRE deployment cycle.",
+      analogy: "The NBFC model risk committee and compliance audit function: monthly review of AI credit decision quality, fairness across income segments, and PMLA leakage — with findings feeding back into the next deployment cycle.",
+      pmInsight: "Build the RBI-format audit log before the product feature launches. Retroactively reconstructing NBFC AI decision chains is expensive and often incomplete — and RBI inspections are unannounced. Define audit log schema, retention period (minimum 5 years for loan records), and the monthly model risk review process in the feature spec.",
+      questions: ["Is the NBFC AI decision audit log immutable, write-once, and in RBI-inspection-ready format?", "Are monthly model risk committee reviews with compliance stakeholders scheduled before the feature goes live?"],
+      metric: "Pre-release regression catch rate and RBI audit log completeness",
+      slo: "100% of AI credit decisions logged with model version, CIBIL snapshot, AA consent reference; monthly fairness eval across CIBIL bands; 5-year retention",
+    },
+  },
 };
-
-/* ─── Section 6: Product Stack handlers ─── */
-const titleEl = document.getElementById("node-title");
-const purposeEl = document.getElementById("node-purpose");
-const metricEl = document.getElementById("node-metric");
-const riskEl = document.getElementById("node-risk");
-const leverEl = document.getElementById("node-lever");
-
-const patternNameEl = document.getElementById("pattern-name");
-const patternReasonEl = document.getElementById("pattern-reason");
-const patternActionsEl = document.getElementById("pattern-actions");
-
-const ranges = {
-  latency: document.getElementById("latency"),
-  cost: document.getElementById("cost"),
-  quality: document.getElementById("quality"),
-  risk: document.getElementById("risk"),
-};
-
-function renderNode(nodeKey) {
-  const node = nodeData[nodeKey];
-  if (!node) return;
-  titleEl.textContent = node.title;
-  purposeEl.textContent = node.purpose;
-  metricEl.textContent = node.metric;
-  riskEl.textContent = node.risk;
-  leverEl.textContent = node.lever;
-}
-
-function setActiveNode(targetButton) {
-  document.querySelectorAll(".node").forEach((btn) => btn.classList.remove("active"));
-  targetButton.classList.add("active");
-}
-
-document.querySelectorAll(".node").forEach((button) => {
-  button.addEventListener("click", () => {
-    setActiveNode(button);
-    renderNode(button.dataset.node);
-  });
-});
-
-/* ─── Section 7: Tradeoff Simulator ─── */
-function readSliderValues() {
-  return {
-    latency: Number(ranges.latency.value),
-    cost: Number(ranges.cost.value),
-    quality: Number(ranges.quality.value),
-    risk: Number(ranges.risk.value),
-  };
-}
-
-function recommendPattern() {
-  const values = readSliderValues();
-  const match = patterns.find((pattern) => pattern.when(values));
-  patternNameEl.textContent = match.name;
-  patternReasonEl.textContent = match.reason;
-  patternActionsEl.innerHTML = match.actions.map((item) => `<li>${item}</li>`).join("");
-}
-
-Object.values(ranges).forEach((range) => {
-  range.addEventListener("input", recommendPattern);
-});
 
 /* ─── SVG Architecture Diagram Inspectors ─── */
 const badgeClass = {
@@ -601,40 +504,7 @@ document.querySelectorAll(".arch-node").forEach((node) => {
   });
 });
 
-/* ─── Section 9: Quiz (5 questions) ─── */
-const quizForm = document.getElementById("quiz-form");
-const quizResult = document.getElementById("quiz-result");
-
-quizForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const data = new FormData(quizForm);
-  const answers = {
-    q1: data.get("q1"),
-    q2: data.get("q2"),
-    q3: data.get("q3"),
-    q4: data.get("q4"),
-    q5: data.get("q5"),
-  };
-
-  const correct = { q1: "A", q2: "B", q3: "C", q4: "B", q5: "B" };
-  let score = 0;
-  Object.keys(correct).forEach((key) => {
-    if (answers[key] === correct[key]) score += 1;
-  });
-
-  const total = Object.keys(correct).length;
-  if (score === total) {
-    quizResult.textContent = `${score}/${total}: Strong fintech PM-system design fluency. You are ready to run a controlled pilot with compliance guardrails.`;
-  } else if (score >= 3) {
-    quizResult.textContent = `${score}/${total}: Good base. Revisit policy retrieval strategy, agent reliability math, or risk KPIs before scaling.`;
-  } else if (score >= 2) {
-    quizResult.textContent = `${score}/${total}: Revisit the lifecycle diagram and tradeoff simulator to tighten your fintech control model.`;
-  } else {
-    quizResult.textContent = `${score}/${total}: Build fundamentals first. Focus on compliance controls, evals, and outcome metrics.`;
-  }
-});
-
-/* ─── Section 10: Learning Path Generator ─── */
+/* ─── Section 9: Learning Path Generator ─── */
 const lpForm = document.getElementById("lp-form");
 const lpOutput = document.getElementById("lp-output");
 const lpSubmit = document.getElementById("lp-submit");
@@ -815,6 +685,3 @@ const observer = new IntersectionObserver(
 
 sections.forEach((section) => observer.observe(section));
 
-/* ─── Init ─── */
-renderNode("entry");
-recommendPattern();

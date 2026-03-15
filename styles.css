@@ -391,58 +391,225 @@ h1 {
 .stack-grid h3 { margin: 0 0 6px; font-size: 0.95rem; }
 .stack-grid p { margin: 0; font-size: 0.88rem; color: var(--muted); }
 
-/* ─── Simulator (Section 7) ─── */
-.sim-grid {
+/* ─── NBFC Systems Lifecycle Banner (Section 7) ─── */
+.lifecycle-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  background: #f8fbf8;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.lifecycle-stage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.lifecycle-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.lc-crm  { background: #1d9a6c; }
+.lc-los  { background: #2563eb; }
+.lc-lms  { background: #7c3aed; }
+.lc-col  { background: #ea580c; }
+
+.lifecycle-arrow {
+  color: var(--muted);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.nbfc-systems-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px 14px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
 }
-.sim-grid label { font-size: 0.92rem; display: grid; gap: 5px; font-weight: 600; }
-input[type="range"] { accent-color: var(--primary); width: 100%; }
 
-.recommendation {
+.nbfc-system-card {
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 14px;
-  background: linear-gradient(160deg, #fcfffd, #f7fbf9);
+  padding: 16px;
+  background: #fcfffe;
 }
-.recommendation h3 { margin: 0 0 8px; font-size: 1rem; }
-.recommendation p { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
-.recommendation ul { margin: 0; padding-left: 18px; }
-.recommendation li { color: var(--muted); font-size: 0.88rem; margin-bottom: 4px; }
 
-/* ─── Timeline (Section 8) ─── */
-.timeline {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 10px;
+.nbfc-system-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
 }
-.timeline article {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
-  background: #fff;
-}
-.timeline h3 { margin: 0 0 8px; font-size: 0.97rem; }
-.timeline ul { margin: 0; padding-left: 18px; color: var(--muted); line-height: 1.5; }
-.timeline li { margin-bottom: 5px; font-size: 0.88rem; }
+.nbfc-system-header h3 { margin: 0; font-size: 0.97rem; }
 
-/* ─── Quiz (Section 9) ─── */
-fieldset {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  margin: 0 0 10px;
-  padding: 12px;
+.nbfc-system-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
 }
-legend { padding: 0 6px; font-weight: 700; font-size: 0.92rem; }
-fieldset label {
-  display: block;
-  margin: 8px 0;
+
+.nbfc-system-role {
+  font-size: 0.83rem;
+  color: var(--muted);
+  margin: 0 0 8px;
+  font-style: italic;
   line-height: 1.4;
-  color: #22352b;
-  font-size: 0.9rem;
 }
+
+.nbfc-system-usecases {
+  margin: 0 0 10px;
+  padding-left: 16px;
+}
+.nbfc-system-usecases li {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin-bottom: 3px;
+  line-height: 1.45;
+}
+
+.nbfc-system-meta {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 0.83rem;
+  margin-bottom: 4px;
+}
+
+.nbfc-meta-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #486157;
+  font-weight: 700;
+  flex-shrink: 0;
+  min-width: 110px;
+}
+
+/* ─── Evals Section (Section 8) ─── */
+.evals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.eval-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  background: #fcfffe;
+}
+
+.eval-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.eval-card-header h3 { margin: 0; font-size: 0.97rem; }
+
+.eval-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.eval-card > p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 10px;
+  line-height: 1.45;
+}
+
+.eval-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-bottom: 10px;
+}
+.eval-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #486157;
+  padding: 0 6px 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+.eval-table td {
+  padding: 4px 6px 4px 0;
+  color: var(--text);
+  vertical-align: top;
+  line-height: 1.4;
+  border-bottom: 1px solid #f0f4f1;
+}
+.eval-table tr:last-child td { border-bottom: none; }
+.eval-table td:first-child { font-weight: 600; white-space: nowrap; }
+
+.eval-note {
+  background: #fff7ed;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  color: #7c2d12;
+  line-height: 1.4;
+}
+
+.eval-cadence {
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #f8fbf8;
+}
+.eval-cadence h3 { margin: 0 0 10px; font-size: 0.95rem; }
+
+.cadence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.cadence-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.83rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.cadence-freq {
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary);
+}
+
 .primary {
   border: none;
   background: var(--primary);
@@ -456,9 +623,7 @@ fieldset label {
 }
 .primary:hover { opacity: 0.88; }
 .primary:disabled { opacity: 0.5; cursor: not-allowed; }
-#quiz-result { margin: 12px 0 0; font-weight: 700; font-size: 0.92rem; }
-
-/* ─── Learning Path Generator (Section 10) ─── */
+/* ─── Learning Path Generator (Section 9) ─── */
 .lp-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -524,7 +689,8 @@ fieldset label {
 @media (max-width: 860px) {
   .diag-layout { grid-template-columns: 1fr; }
   .diagram-layout { grid-template-columns: 1fr; }
-  .sim-grid { grid-template-columns: 1fr; }
   .lp-form-grid { grid-template-columns: 1fr; }
   .lp-form-grid label:last-child { grid-column: 1; }
+  .nbfc-systems-grid { grid-template-columns: 1fr; }
+  .evals-grid { grid-template-columns: 1fr; }
 }

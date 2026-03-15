@@ -3,22 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>India Fintech AI System Design Guide for Product Managers</title>
+    <title>AI-Powered NBFC System Design Guide for Product Managers</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
 
     <header class="hero">
       <p class="eyebrow">Interactive Learning Guide</p>
-      <h1>India Fintech System Design for Product Managers Transitioning to AI</h1>
+      <h1>AI-Powered NBFC: System Design for Product Managers</h1>
       <p class="subtitle">
-        Learn fintech AI system design through interactive architecture maps, RBI compliance
-        tradeoffs, and rollout playbooks for India's regulated UPI, NBFC, and digital lending ecosystem.
+        Master the architecture behind India's AI-powered NBFCs — from LOS and LMS to Collections and CRM.
+        Understand RBI compliance tradeoffs, evaluation frameworks, and the India Stack that connects it all.
       </p>
       <div class="chips" aria-label="Learning outcomes">
-        <span>Map customer journeys to RBI-compliant AI architecture</span>
-        <span>Balance UPI latency, cost, NBFC compliance, and fraud controls</span>
-        <span>Launch safely across NBFC underwriting, UPI support, and AA-powered lending</span>
+        <span>Map NBFC workflows to RBI-compliant AI architecture</span>
+        <span>Design across CRM, LOS, LMS, and Collections with AI at the core</span>
+        <span>Build and run evals that satisfy RBI, fairness, and business requirements</span>
       </div>
     </header>
 
@@ -28,10 +28,9 @@
       <a class="nav-tab" href="#ai-blocks"     data-section="ai-blocks">LLM Mechanics</a>
       <a class="nav-tab" href="#rag"           data-section="rag">RAG Pipeline</a>
       <a class="nav-tab" href="#agents"        data-section="agents">Agents</a>
-      <a class="nav-tab" href="#stack"         data-section="stack">Product Stack</a>
-      <a class="nav-tab" href="#simulator"     data-section="simulator">Simulator</a>
-      <a class="nav-tab" href="#roadmap"       data-section="roadmap">Roadmap</a>
-      <a class="nav-tab" href="#quiz"          data-section="quiz">Self-Check</a>
+      <a class="nav-tab" href="#stack"         data-section="stack">AI Product Stack</a>
+      <a class="nav-tab" href="#nbfc-systems"  data-section="nbfc-systems">NBFC Systems</a>
+      <a class="nav-tab" href="#evals"         data-section="evals">Evals</a>
       <a class="nav-tab" href="#learning-path" data-section="learning-path">My Path</a>
     </nav>
 
@@ -40,10 +39,10 @@
       <!-- ═══════════════════ SECTION 1: WEB ═══════════════════ -->
       <section class="panel" id="web">
         <h2>1) How a Web Request Works</h2>
-        <p>Every AI product in India is built on web infrastructure. Before understanding AI systems, PMs must know how data moves from a customer's device through servers and back — whether that's a UPI dispute query hitting NPCI rails or an NBFC credit decision traversing CBS. This lifecycle — mobile app, CDN, app server, Core Banking System — is the same path your LLM API calls travel on every request.</p>
+        <p>Every AI product in an NBFC is built on web infrastructure. Before understanding AI systems, PMs must know how data moves from a customer's device through servers and back — whether that's a UPI dispute query hitting NPCI rails or a credit decision traversing CBS. This lifecycle — mobile app, CDN, app server, Core Banking System — is the same path your LLM API calls travel on every loan origination or servicing request.</p>
         <ul class="section-concepts">
           <li>A mobile app initiates HTTP requests; NPCI/CBS servers respond with data — every LLM API call for a credit decision or UPI dispute follows this identical round-trip pattern</li>
-          <li>CDNs cache static assets at geographic edge nodes close to Indian cities — critical for Bharat-scale products serving Tier 2/3 markets on Jio 4G networks</li>
+          <li>CDNs cache static assets at geographic edge nodes close to Indian cities — critical for Bharat-scale NBFC products serving Tier 2/3 markets on Jio 4G networks</li>
           <li>Core Banking Systems (CBS) persist the source of truth between requests — your model context, audit logs, and customer loan ledger all ultimately flow through the CBS layer</li>
           <li>In-memory caches (Redis) hold hot data to avoid slow CBS reads — PMs track cache-hit rate because it directly controls p95 latency on UPI and NBFC servicing queries</li>
         </ul>
@@ -78,21 +77,19 @@
                   <text class="node-title" x="390" y="96">App Server</text>
                   <text class="node-sub"   x="390" y="110">Business Logic</text>
                 </g>
-                <!-- server → db -->
-                <line x1="450" y1="93" x2="490" y2="42" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-w)"/>
+                <line x1="450" y1="90" x2="500" y2="60" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-w)"/>
+                <line x1="450" y1="110" x2="500" y2="130" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-w)"/>
                 <!-- db -->
                 <g class="arch-node node-database" data-diagram="web" data-node="db" tabindex="0" role="button" aria-label="Database">
-                  <rect x="490" y="20" width="120" height="44" rx="10"/>
-                  <text class="node-title" x="550" y="38">Database</text>
-                  <text class="node-sub"   x="550" y="52">Persistent Store</text>
+                  <rect x="500" y="38" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="560" y="56">Database</text>
+                  <text class="node-sub"   x="560" y="70">Persistent Store</text>
                 </g>
-                <!-- server → cache -->
-                <line x1="450" y1="107" x2="490" y2="147" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-w)"/>
                 <!-- cache -->
                 <g class="arch-node node-cache" data-diagram="web" data-node="cache" tabindex="0" role="button" aria-label="Cache">
-                  <rect x="490" y="136" width="120" height="44" rx="10"/>
-                  <text class="node-title" x="550" y="154">Cache</text>
-                  <text class="node-sub"   x="550" y="168">Redis / Memory</text>
+                  <rect x="500" y="108" width="120" height="44" rx="10"/>
+                  <text class="node-title" x="560" y="126">Cache</text>
+                  <text class="node-sub"   x="560" y="140">Redis / In-Memory</text>
                 </g>
               </svg>
             </div>
@@ -102,14 +99,14 @@
           </div>
         </div>
         <div class="key-concept">
-          <strong>PM Takeaway:</strong> When your AI feature is slow on Indian networks, the bottleneck is almost always one of these four layers. Your job is to know which one to ask engineering about — and to have a defined SLO for each hop, including NPCI rail latency and CBS read time, before launch.
+          <strong>PM Takeaway:</strong> When your NBFC AI feature is slow on Indian networks, the bottleneck is almost always one of these four layers. Your job is to know which one to ask engineering about — and to have a defined SLO for each hop, including NPCI rail latency and CBS read time, before launch.
         </div>
       </section>
 
       <!-- ═══════════════════ SECTION 2: APIS ═══════════════════ -->
       <section class="panel" id="apis">
         <h2>2) API Gateway &amp; Microservices</h2>
-        <p>Indian fintech products are composed of small, independently deployable services connected by APIs — from NPCI payment switches to NBFC CBS modules to Account Aggregator consent layers. The gateway is the front door: it enforces Aadhaar-linked auth, rate limits, and routing before any domain service sees the request. PMs must understand this layer because it governs what your AI feature can and cannot do — and who owns the data access under RBI's AA Master Direction.</p>
+        <p>NBFC products are composed of small, independently deployable services connected by APIs — from NPCI payment switches to CBS modules to Account Aggregator consent layers. The gateway is the front door: it enforces Aadhaar-linked auth, rate limits, and routing before any domain service sees the request. PMs must understand this layer because it governs what your AI feature can and cannot do — and who owns the data access under RBI's AA Master Direction.</p>
         <ul class="section-concepts">
           <li>The gateway enforces Aadhaar eKYC authentication and PMLA rate limits before any service logic runs — RBI compliance middleware often lives here as a mandatory pre-condition</li>
           <li>Microservices own single domains: auth, CKYC, NBFC credit policy, NPCI payments — AI orchestration must call each with scoped permissions per RBI data governance requirements</li>
@@ -180,14 +177,14 @@
           </div>
         </div>
         <div class="key-concept">
-          <strong>PM Takeaway:</strong> Every AI action that touches a customer's NBFC loan account or NPCI transaction must pass through this stack. "Can we just call the model directly?" — no. Map your AI feature's service dependencies — AA consent layer, CKYC registry, CBS, NPCI — before writing the spec, or you will discover RBI compliance blockers in sprint 3.
+          <strong>PM Takeaway:</strong> Every AI action that touches a customer's NBFC loan account or NPCI transaction must pass through this stack. Map your AI feature's service dependencies — AA consent layer, CKYC registry, CBS, NPCI — before writing the spec, or you will discover RBI compliance blockers in sprint 3.
         </div>
       </section>
 
       <!-- ═══════════════════ SECTION 3: LLM MECHANICS ═══════════════════ -->
       <section class="panel" id="ai-blocks">
         <h2>3) LLM Mechanics: Tokens, Transformers &amp; Embeddings</h2>
-        <p>Language models convert text to tokens, process them through a transformer, and produce probability distributions over possible next tokens. For Indian fintech PMs, this matters because: tokens determine cost at Bharat scale, transformers power every credit explanation and UPI dispute resolution, and embeddings drive semantic retrieval of RBI Master Directions and MITC documents. Hindi and regional language queries tokenise differently, affecting cost and quality simultaneously.</p>
+        <p>Language models convert text to tokens, process them through a transformer, and produce probability distributions over possible next tokens. For NBFC PMs, this matters because: tokens determine cost at Bharat scale, transformers power every credit explanation and UPI dispute resolution, and embeddings drive semantic retrieval of RBI Master Directions and MITC documents. Hindi and regional language queries tokenise differently, affecting cost and quality simultaneously.</p>
         <ul class="section-concepts">
           <li>Tokens are sub-word units (~0.75 words in English; 2–4x more for Hindi/Devanagari) — a 200K token context window holds a complete set of RBI Master Directions for digital lending</li>
           <li>Transformers use self-attention to weigh every token against every other — long NBFC policy documents in context cost more (attention scales quadratically), requiring careful context budget management</li>
@@ -265,7 +262,7 @@
       <!-- ═══════════════════ SECTION 4: RAG ═══════════════════ -->
       <section class="panel" id="rag">
         <h2>4) Retrieval-Augmented Generation (RAG)</h2>
-        <p>RAG solves the core Indian fintech AI problem: models don't know your latest RBI Master Direction, NBFC credit policy, MITC version, or Account Aggregator schema. RAG retrieves the right context at query time and injects it into the prompt, grounding every answer in current regulatory reality. This is the architecture behind every policy assistant, credit copilot, and compliance Q&amp;A tool in India's NBFC and digital lending ecosystem — and the mechanism RBI expects when it asks for explainable AI decisions.</p>
+        <p>RAG solves the core NBFC AI problem: models don't know your latest RBI Master Direction, NBFC credit policy, MITC version, or Account Aggregator schema. RAG retrieves the right context at query time and injects it into the prompt, grounding every answer in current regulatory reality. This is the architecture behind every NBFC policy assistant, credit copilot, and compliance Q&amp;A tool — and the mechanism RBI expects when it asks for explainable AI decisions.</p>
         <ul class="section-concepts">
           <li>The ingestion pipeline runs offline: RBI circulars and NBFC policies are chunked, embedded, and stored — its freshness directly determines your RBI compliance posture, not just product quality</li>
           <li>The query pipeline runs in real time: the customer's query is embedded, matched against stored RBI policy chunks, and top-k clauses are injected into the prompt — grounding the credit decision in current regulatory text</li>
@@ -350,14 +347,14 @@
           </div>
         </div>
         <div class="key-concept">
-          <strong>PM Takeaway:</strong> In Indian fintech, RAG quality equals RBI compliance quality. Your cited-answer coverage rate, RBI circular freshness SLA, and retrieval precision on NBFC policy queries are product KPIs — not just engineering metrics. Own the data pipeline that feeds RAG, or you will discover a stale RBI circular in a customer complaint reviewed by the Grievance Redressal Officer.
+          <strong>PM Takeaway:</strong> In NBFC AI, RAG quality equals RBI compliance quality. Your cited-answer coverage rate, RBI circular freshness SLA, and retrieval precision on NBFC policy queries are product KPIs — not just engineering metrics. Own the data pipeline that feeds RAG, or you will discover a stale RBI circular in a customer complaint reviewed by the Grievance Redressal Officer.
         </div>
       </section>
 
       <!-- ═══════════════════ SECTION 5: AGENTS ═══════════════════ -->
       <section class="panel" id="agents">
         <h2>5) Agentic AI Systems</h2>
-        <p>Agents extend LLMs with the ability to plan, use tools, and act across multiple steps autonomously. An Indian fintech agent might fetch AA-consented bank statements, check a CIBIL score, retrieve relevant RBI policy, call an NBFC credit API, and produce a MITC-compliant decision log — without a human in the loop. PMs must understand the reliability math: each step introduces failure probability, and agents multiply these risks. Six steps at 85% reliability each yields only 37% end-to-end success (0.85&#x2076; ≈ 0.377) — and must complete within NPCI's session timeout.</p>
+        <p>Agents extend LLMs with the ability to plan, use tools, and act across multiple steps autonomously. An NBFC agent might fetch AA-consented bank statements, check a CIBIL score, retrieve relevant RBI policy, call a CBS credit API, and produce a MITC-compliant decision log — without a human in the loop. PMs must understand the reliability math: each step introduces failure probability, and agents multiply these risks. Six steps at 85% reliability each yields only 37% end-to-end success (0.85&#x2076; ≈ 0.377) — and must complete within NPCI's session timeout.</p>
         <ul class="section-concepts">
           <li>The ReAct loop (Reason + Act) is the core agent pattern: the LLM reasons about which NPCI/AA/CBS tool to call, acts, observes the result, and repeats — until the credit decision is made or a stopping condition is reached</li>
           <li>Tool calls are deterministic wrappers around NPCI and CBS systems — idempotency keys and maker-checker approval flows are non-negotiable when tools initiate real UPI transactions or NBFC loan disbursements</li>
@@ -445,131 +442,364 @@
         </div>
       </section>
 
-      <!-- ═══════════════════ SECTION 6: PRODUCT STACK ═══════════════════ -->
+      <!-- ═══════════════════ SECTION 6: NBFC AI PRODUCT STACK ═══════════════════ -->
       <section class="panel" id="stack">
-        <h2>6) Mental Model: Fintech AI Product Stack</h2>
-        <p>Think in layers: <strong>Customer Journey</strong> → <strong>RBI / PMLA / DPDP Compliance Logic</strong> → <strong>Model Orchestration</strong> → <strong>AA Data, CBS Ledger &amp; Feedback</strong> → <strong>NPCI Platform, Security &amp; RBI Governance</strong>. PM ownership spans all five. Click any component below to inspect PM goals, metrics, and failure modes in India's regulated digital lending and payments context.</p>
-        <div class="diagram-layout">
-          <div class="diagram" role="list" aria-label="Fintech AI lifecycle components">
-            <button class="node active" data-node="entry"    role="listitem">Customer Intent</button>
-            <button class="node"        data-node="safety"   role="listitem">KYC/AML Guardrails</button>
-            <button class="node"        data-node="router"   role="listitem">Risk Router</button>
-            <button class="node"        data-node="retrieval" role="listitem">Policy + Ledger Retrieval</button>
-            <button class="node"        data-node="model"    role="listitem">Decision Model</button>
-            <button class="node"        data-node="tools"    role="listitem">Core Banking APIs</button>
-            <button class="node"        data-node="response" role="listitem">Decision Explanation</button>
-            <button class="node"        data-node="feedback" role="listitem">Monitoring &amp; Audit Loop</button>
+        <h2>6) NBFC AI Product Stack</h2>
+        <p>Every AI-powered NBFC request flows through seven layers: from customer intent capture and PMLA safety gates, through risk-based routing and AA-powered retrieval, to the decision model, NPCI/CBS execution, and a MITC-compliant output — with an RBI audit feedback loop running continuously underneath. Click any layer to inspect the PM goals, NBFC-specific risks, and compliance levers at that stage.</p>
+        <div class="diag-layout">
+          <div class="diagram-wrap">
+            <svg viewBox="0 0 760 310" role="img" aria-label="NBFC AI product stack pipeline">
+              <defs>
+                <marker id="arr-s" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                  <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
+                </marker>
+                <marker id="arr-s-rev" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+                  <polygon points="8 0,0 3,8 6" fill="#94a3b8"/>
+                </marker>
+              </defs>
+
+              <!-- TOP LABEL -->
+              <text class="diag-section-label" x="10" y="16">Customer Request Flow →</text>
+
+              <!-- ROW 1: main pipeline nodes -->
+              <!-- entry -->
+              <g class="arch-node node-client" data-diagram="stack" data-node="entry" tabindex="0" role="button" aria-label="Customer Intent">
+                <rect x="10"  y="28" width="90" height="52" rx="10"/>
+                <text class="node-title" x="55"  y="50">Customer</text>
+                <text class="node-sub"   x="55"  y="64">Intent</text>
+                <text class="node-sub"   x="55"  y="76">+ AA Consent</text>
+              </g>
+              <line x1="100" y1="54" x2="118" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-s)"/>
+
+              <!-- safety -->
+              <g class="arch-node node-server" data-diagram="stack" data-node="safety" tabindex="0" role="button" aria-label="PMLA Safety Gates">
+                <rect x="118" y="28" width="96" height="52" rx="10"/>
+                <text class="node-title" x="166" y="48">Safety</text>
+                <text class="node-sub"   x="166" y="62">CKYC / PMLA</text>
+                <text class="node-sub"   x="166" y="74">DPDP Gates</text>
+              </g>
+              <line x1="214" y1="54" x2="232" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-s)"/>
+
+              <!-- router -->
+              <g class="arch-node node-server" data-diagram="stack" data-node="router" tabindex="0" role="button" aria-label="Risk Router">
+                <rect x="232" y="28" width="96" height="52" rx="10"/>
+                <text class="node-title" x="280" y="48">Risk</text>
+                <text class="node-sub"   x="280" y="62">Router</text>
+                <text class="node-sub"   x="280" y="74">BRE + Tiers</text>
+              </g>
+              <line x1="328" y1="54" x2="346" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-s)"/>
+
+              <!-- retrieval -->
+              <g class="arch-node node-database" data-diagram="stack" data-node="retrieval" tabindex="0" role="button" aria-label="AA + Policy Retrieval">
+                <rect x="346" y="28" width="96" height="52" rx="10"/>
+                <text class="node-title" x="394" y="46">AA + Policy</text>
+                <text class="node-sub"   x="394" y="60">Retrieval</text>
+                <text class="node-sub"   x="394" y="74">CIBIL / Docs</text>
+              </g>
+              <line x1="442" y1="54" x2="460" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-s)"/>
+
+              <!-- model -->
+              <g class="arch-node node-ai" data-diagram="stack" data-node="model" tabindex="0" role="button" aria-label="Decision Model">
+                <rect x="460" y="28" width="96" height="52" rx="10"/>
+                <text class="node-title" x="508" y="48">Decision</text>
+                <text class="node-sub"   x="508" y="62">Model</text>
+                <text class="node-sub"   x="508" y="74">Credit / Policy</text>
+              </g>
+              <line x1="556" y1="54" x2="574" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-s)"/>
+
+              <!-- tools -->
+              <g class="arch-node node-server" data-diagram="stack" data-node="tools" tabindex="0" role="button" aria-label="NPCI / CBS Tools">
+                <rect x="574" y="28" width="96" height="52" rx="10"/>
+                <text class="node-title" x="622" y="48">NPCI / CBS</text>
+                <text class="node-sub"   x="622" y="62">Actions</text>
+                <text class="node-sub"   x="622" y="74">UPI / NACH</text>
+              </g>
+              <line x1="670" y1="54" x2="688" y2="54" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-s)"/>
+
+              <!-- response -->
+              <g class="arch-node node-server" data-diagram="stack" data-node="response" tabindex="0" role="button" aria-label="MITC Response">
+                <rect x="666" y="28" width="90" height="52" rx="10"/>
+                <text class="node-title" x="711" y="46">MITC</text>
+                <text class="node-sub"   x="711" y="60">Response</text>
+                <text class="node-sub"   x="711" y="74">+ GRO Link</text>
+              </g>
+
+              <!-- FEEDBACK ROW -->
+              <text class="diag-section-label" x="10" y="132">← RBI Audit Feedback Loop</text>
+
+              <!-- feedback node spanning bottom -->
+              <g class="arch-node node-ai" data-diagram="stack" data-node="feedback" tabindex="0" role="button" aria-label="Monitoring Audit Loop">
+                <rect x="10" y="146" width="746" height="52" rx="10"/>
+                <text class="node-title" x="383" y="168">Monitoring, Audit &amp; RBI Review Loop</text>
+                <text class="node-sub"   x="383" y="184">PMLA leakage · DPDP compliance · fairness evals · immutable RBI-format audit trail · model risk committee</text>
+              </g>
+
+              <!-- vertical lines from each top node down to feedback -->
+              <line x1="55"  y1="80" x2="55"  y2="146" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+              <line x1="166" y1="80" x2="166" y2="146" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+              <line x1="280" y1="80" x2="280" y2="146" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+              <line x1="394" y1="80" x2="394" y2="146" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+              <line x1="508" y1="80" x2="508" y2="146" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+              <line x1="622" y1="80" x2="622" y2="146" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+              <line x1="711" y1="80" x2="711" y2="146" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+            </svg>
           </div>
-          <article class="inspector" aria-live="polite">
-            <h3 id="node-title"></h3>
-            <p  id="node-purpose"></p>
-            <dl>
-              <dt>Key PM Metric</dt>   <dd id="node-metric"></dd>
-              <dt>Common Risk</dt>      <dd id="node-risk"></dd>
-              <dt>PM Decision Lever</dt><dd id="node-lever"></dd>
-            </dl>
-          </article>
-        </div>
-        <div class="stack-grid" style="margin-top:14px">
-          <article><h3>Customer Journey</h3><p>UPI onboarding, NBFC loan servicing, KYC renewal, dispute resolution, and MITC-compliant disclosure UX.</p></article>
-          <article><h3>RBI / PMLA / DPDP Logic</h3><p>CKYC, AML/PMLA, Aadhaar eKYC, DPDP Act consent management, RBI Fair Practices Code, and sanctions screening.</p></article>
-          <article><h3>Model Orchestration</h3><p>Prompting, model routing, RBI policy retrieval, AA data injection, and tool calls for NBFC credit decision workflows.</p></article>
-          <article><h3>AA Data, CBS Ledger &amp; Feedback</h3><p>Account Aggregator-consented financials, CBS transaction history, CIBIL bureau signals, and RBI model risk labels.</p></article>
-          <article><h3>NPCI Platform &amp; RBI Governance</h3><p>NPCI audit trails, RBI model monitoring, DPDP Act data controls, CBS reliability, and RBI-mandated cost limits.</p></article>
+          <div class="arch-inspector" id="inspector-stack">
+            <p class="inspector-placeholder">Click any layer above to inspect PM goals, NBFC risks, and compliance levers.</p>
+          </div>
         </div>
       </section>
 
-      <!-- ═══════════════════ SECTION 7: SIMULATOR ═══════════════════ -->
-      <section class="panel" id="simulator">
-        <h2>7) Tradeoff Simulator: Pick Your Fintech Design Pattern</h2>
-        <p>Move the sliders to reflect your product constraints. The simulator suggests architecture direction and implementation priorities for India's regulated NBFC, UPI, and digital lending launches under RBI Digital Lending Guidelines 2022.</p>
-        <div class="sim-grid">
-          <label>Latency Sensitivity     <input type="range" id="latency" min="1" max="5" value="3"/></label>
-          <label>Cost Pressure           <input type="range" id="cost"    min="1" max="5" value="3"/></label>
-          <label>Quality Bar             <input type="range" id="quality" min="1" max="5" value="4"/></label>
-          <label>Risk/Compliance Need    <input type="range" id="risk"    min="1" max="5" value="4"/></label>
-        </div>
-        <article class="recommendation">
-          <h3 id="pattern-name">Pattern recommendation appears here</h3>
-          <p  id="pattern-reason"></p>
-          <ul id="pattern-actions"></ul>
-        </article>
-      </section>
+      <!-- ═══════════════════ SECTION 7: NBFC SYSTEMS ═══════════════════ -->
+      <section class="panel" id="nbfc-systems">
+        <h2>7) NBFC System Landscape: CRM, LOS, LMS &amp; Collections</h2>
+        <p>An AI-powered NBFC doesn't have a single AI system — it has AI embedded across four core operational platforms, each at a different stage of the customer credit lifecycle. Understanding where AI sits within each system, what data it consumes, and what RBI obligations apply at each stage is a foundational PM skill for NBFC product roles.</p>
 
-      <!-- ═══════════════════ SECTION 8: ROADMAP ═══════════════════ -->
-      <section class="panel" id="roadmap">
-        <h2>8) PM Transition Roadmap (30-60-90)</h2>
-        <div class="timeline">
-          <article>
-            <h3>First 30 Days</h3>
-            <ul>
-              <li>Map one Indian fintech journey end-to-end: UPI dispute resolution, NBFC onboarding, or AA-powered credit assessment.</li>
-              <li>Review your RBI Digital Lending Guidelines 2022, PMLA, DPDP Act 2023, and AA Master Direction obligations.</li>
-              <li>Define launch metrics: assisted resolution rate, RBI policy breach rate, AA consent drop-off rate.</li>
+        <!-- LIFECYCLE BANNER -->
+        <div class="lifecycle-banner" aria-label="NBFC customer credit lifecycle">
+          <div class="lifecycle-stage">
+            <span class="lifecycle-dot lc-crm"></span>
+            <span>Lead &amp; Prospect</span>
+          </div>
+          <div class="lifecycle-arrow">→</div>
+          <div class="lifecycle-stage">
+            <span class="lifecycle-dot lc-los"></span>
+            <span>Originate</span>
+          </div>
+          <div class="lifecycle-arrow">→</div>
+          <div class="lifecycle-stage">
+            <span class="lifecycle-dot lc-lms"></span>
+            <span>Serve &amp; Manage</span>
+          </div>
+          <div class="lifecycle-arrow">→</div>
+          <div class="lifecycle-stage">
+            <span class="lifecycle-dot lc-col"></span>
+            <span>Collect &amp; Recover</span>
+          </div>
+        </div>
+
+        <div class="nbfc-systems-grid">
+
+          <!-- CRM -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #1d9a6c">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#dff4ea;color:#1d9a6c">CRM</span>
+              <h3>Customer Relationship Management</h3>
+            </div>
+            <p class="nbfc-system-role">AI role: predict, personalise, and prioritise before a loan application is filed.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>Lead scoring:</strong> ML models rank inbound leads by conversion probability using bureau pre-screen, demographic signals, and channel attribution — before a single CIBIL hard inquiry is made.</li>
+              <li><strong>Next-best-action:</strong> LLM + RAG surfaces the right product (top-up loan, insurance, co-branded card) for each customer segment based on repayment history and AA-consented income data.</li>
+              <li><strong>Churn prediction:</strong> Ensemble models flag customers likely to prepay, close, or switch lender — enabling proactive retention offers within RBI Fair Practices Code limits.</li>
+              <li><strong>Customer 360:</strong> AI aggregates CBS loan history, UPI transaction patterns, AA financials, and CRM interaction logs into a single context window for servicing agents.</li>
             </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>Lead-to-disbursal conversion rate · Churn rate · NPS by segment</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>DPDP Act consent required for AA data use in CRM; RBI Fair Practices Code governs product recommendation communications.</span>
+            </div>
           </article>
-          <article>
-            <h3>Days 31–60</h3>
-            <ul>
-              <li>Ship a narrow pilot for a low-risk segment with deterministic BRE fallbacks — compliant with RBI Fair Practices Code.</li>
-              <li>Stand up offline evals for fairness across CIBIL score bands, MITC citation accuracy, and RBI compliance adherence.</li>
-              <li>Add dashboards for retrieval precision, UPI latency, PMLA flags, NPCI error rates, and GRO complaint volume.</li>
+
+          <!-- LOS -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #2563eb">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#dbeafe;color:#2563eb">LOS</span>
+              <h3>Loan Origination System</h3>
+            </div>
+            <p class="nbfc-system-role">AI role: automate underwriting, eliminate fraud, and generate RBI-compliant loan offers at scale.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>Auto-underwriting:</strong> BRE + LLM pipeline evaluates AA-consented bank statements, CIBIL bureau score, and GST filings to generate a credit decision with MITC — without human review for eligible segments.</li>
+              <li><strong>Aadhaar / V-KYC:</strong> AI-assisted V-KYC reduces manual video review time by 60–80%; liveness detection and ID cross-check models gate the KYC completion step before credit offer generation.</li>
+              <li><strong>Fraud screening:</strong> Graph models detect synthetic identities, device-fingerprint anomalies, and NBFC loan stacking patterns in real time — before disbursement, not after.</li>
+              <li><strong>e-MITC generation:</strong> RAG + templating generates personalised MITC documents grounded in the customer's specific loan terms, RBI Digital Lending Guidelines 2022 Section 10 compliant, with a GRO escalation link embedded.</li>
             </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>Auto-approval rate · TAT (application to disbursal) · Fraud loss rate · MITC disclosure rate (must = 100%)</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>RBI Digital Lending Guidelines 2022: MITC mandatory before disbursement; human approval required for first-time high-value loans; CKYC registration mandatory post-sanction.</span>
+            </div>
           </article>
-          <article>
-            <h3>Days 61–90</h3>
-            <ul>
-              <li>Expand to additional customer segments and higher-value NBFC workflows with RBI-mandated phased limits and maker-checker controls.</li>
-              <li>Run a weekly RBI model risk and incident review with compliance and legal — document findings for RBI inspection readiness.</li>
-              <li>Create a quarterly roadmap across model quality, PMLA controls, DPDP Act compliance, and NBFC operating cost per resolved case.</li>
+
+          <!-- LMS -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #7c3aed">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#ede9fe;color:#7c3aed">LMS</span>
+              <h3>Loan Management System</h3>
+            </div>
+            <p class="nbfc-system-role">AI role: predict repayment risk, enable proactive servicing, and flag early distress before DPD begins.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>Early Warning System (EWS):</strong> ML model scores each active loan monthly on repayment risk using CBS EMI history, AA bank statement inflows, and UPI transaction velocity — flags at-risk accounts before Day 1 DPD.</li>
+              <li><strong>Prepayment propensity:</strong> Predicts which customers are likely to prepay in the next 30–90 days, enabling proactive retention offers and liquidity planning for the NBFC treasury team.</li>
+              <li><strong>Behavioural repayment scoring:</strong> Tracks deviations from expected repayment patterns — sudden salary credit drop, new loan stacking, NACH bounce — and updates risk tier in real time.</li>
+              <li><strong>AI servicing copilot:</strong> Conversational AI handles EMI date change requests, NOC issuance, and statement downloads via RAG + CBS API — reducing GRO escalations and CX cost per case.</li>
             </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>EWS precision@30DPD · GRO complaint rate · First-contact resolution rate · NACH success rate</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>RBI Fair Practices Code: AI-driven servicing communication must be clear, non-coercive, and traceable. All customer-facing decisions must cite the source rule and provide GRO contact details.</span>
+            </div>
           </article>
+
+          <!-- Collections -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #ea580c">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#ffedd5;color:#ea580c">Collections</span>
+              <h3>Collections &amp; Recovery</h3>
+            </div>
+            <p class="nbfc-system-role">AI role: maximise recovery while minimising RBI-prohibited harassment — through data, not pressure.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>DPD propensity-to-pay:</strong> ML model scores delinquent accounts on probability of self-cure, partial payment, or full recovery — prioritising collection agent effort on highest-yield accounts, not highest-balance.</li>
+              <li><strong>Optimal contact time:</strong> AI identifies the day, time, and channel (SMS, IVR, WhatsApp, human call) with highest response probability per customer — reducing contact attempts while improving RPC (right-party contact) rate.</li>
+              <li><strong>Conversational AI for recovery:</strong> LLM-powered IVR and WhatsApp bot handles early-stage soft dunning (1–30 DPD), payment reminders, and NACH re-presentation confirmations within RBI-permitted communication hours.</li>
+              <li><strong>Settlement propensity:</strong> For NPA accounts, AI estimates the settlement amount a customer is likely to accept, enabling field agents to negotiate within pre-approved band — reducing write-off rates without manual credit committee approval for every case.</li>
+            </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>Self-cure rate (1–30 DPD) · Collection efficiency · RPC rate · NPA recovery rate</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>RBI Guidelines on Fair Practices &amp; Harassment: AI communication must respect do-not-disturb hours (before 8 AM / after 7 PM), cannot threaten, and must provide GRO contact details in every communication. All AI scripts require compliance sign-off.</span>
+            </div>
+          </article>
+
+        </div>
+
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> Most NBFC AI PMs are hired into one of these four systems — but the highest-impact decisions require understanding how they connect. An EWS signal from LMS should feed CRM retention before it becomes a Collections problem. A CRM next-best-action recommendation is only safe if the LOS fraud gate has already run. Draw this data flow before you write your first AI feature spec.
         </div>
       </section>
 
-      <!-- ═══════════════════ SECTION 9: QUIZ ═══════════════════ -->
-      <section class="panel" id="quiz">
-        <h2>9) Self-Check: India Fintech PM + System Design Fluency</h2>
-        <form id="quiz-form">
-          <fieldset>
-            <legend>Under RBI's Digital Lending Guidelines 2022, when should a credit-policy assistant prioritise retrieval over increasing model size?</legend>
-            <label><input type="radio" name="q1" value="A"/> When RBI mandates source traceability, policy freshness, and explainability for credit decisions</label>
-            <label><input type="radio" name="q1" value="B"/> Only when model inference latency is already under 100 ms</label>
-            <label><input type="radio" name="q1" value="C"/> Never — a larger model internalises regulatory rules and removes compliance risk automatically</label>
-          </fieldset>
-          <fieldset>
-            <legend>Best primary metric pair for an NBFC AI-powered servicing launch in India?</legend>
-            <label><input type="radio" name="q2" value="A"/> Session count + tokens consumed per month</label>
-            <label><input type="radio" name="q2" value="B"/> First-contact resolution rate + RBI regulatory breach rate</label>
-            <label><input type="radio" name="q2" value="C"/> Average prompt length + model parameter count</label>
-          </fieldset>
-          <fieldset>
-            <legend>What is the strongest rollback trigger in a UPI payments copilot rollout?</legend>
-            <label><input type="radio" name="q3" value="A"/> Minor weekly increase in cloud infrastructure cost</label>
-            <label><input type="radio" name="q3" value="B"/> A single missed intent classification with no measurable customer impact</label>
-            <label><input type="radio" name="q3" value="C"/> Breach of a predefined RBI or NPCI fraud / compliance threshold</label>
-          </fieldset>
-          <fieldset>
-            <legend>A 6-step NBFC loan-processing agent where each step succeeds 85% of the time has what end-to-end success rate?</legend>
-            <label><input type="radio" name="q4" value="A"/> 85% — reliability stays constant across sequential steps</label>
-            <label><input type="radio" name="q4" value="B"/> ~37% — reliability compounds multiplicatively (0.85⁶ ≈ 0.377)</label>
-            <label><input type="radio" name="q4" value="C"/> ~51% — reliability degrades linearly at about 5.6% per step</label>
-          </fieldset>
-          <fieldset>
-            <legend>Your RAG system is surfacing outdated MITC to customers asking about NBFC loan terms. Most likely root cause?</legend>
-            <label><input type="radio" name="q5" value="A"/> The LLM context window is too small to hold the full MITC document</label>
-            <label><input type="radio" name="q5" value="B"/> Chunks in the vector store are stale — the re-ingestion schedule does not reflect MITC updates</label>
-            <label><input type="radio" name="q5" value="C"/> The embedding model is too small to encode financial-services terminology</label>
-          </fieldset>
-          <button type="submit" class="primary">Check Score</button>
-        </form>
-        <p id="quiz-result" aria-live="polite"></p>
+      <!-- ═══════════════════ SECTION 8: EVALS ═══════════════════ -->
+      <section class="panel" id="evals">
+        <h2>8) Evals: How to Measure NBFC AI Systems</h2>
+        <p>Shipping an NBFC AI feature without evals is the equivalent of disbursing a loan without a credit policy — you only discover your mistakes in the RBI inspection report. Evals are the mechanism by which PMs own quality, compliance, and fairness before, during, and after launch. Every NBFC AI system requires four distinct eval tracks running in parallel.</p>
+
+        <div class="evals-grid">
+
+          <!-- OFFLINE EVALS -->
+          <article class="eval-card" style="border-left: 4px solid #1d9a6c">
+            <div class="eval-card-header">
+              <span class="eval-badge" style="background:#dff4ea;color:#1d9a6c">Offline Evals</span>
+              <h3>Pre-deploy quality gates on golden datasets</h3>
+            </div>
+            <p>Run before every release. Measure on a static, curated dataset that doesn't change — so regressions are unambiguous.</p>
+            <table class="eval-table">
+              <thead><tr><th>NBFC Use Case</th><th>Key Metric</th><th>Target</th></tr></thead>
+              <tbody>
+                <tr><td>RBI policy RAG</td><td>Retrieval precision@5</td><td>&gt; 0.85</td></tr>
+                <tr><td>MITC citation accuracy</td><td>Cited-answer rate</td><td>100%</td></tr>
+                <tr><td>Credit explanation</td><td>Policy hallucination rate</td><td>&lt; 2%</td></tr>
+                <tr><td>UPI intent classification</td><td>Intent accuracy (top-10)</td><td>&gt; 92%</td></tr>
+                <tr><td>EWS prediction</td><td>Precision@30DPD</td><td>&gt; 0.80</td></tr>
+              </tbody>
+            </table>
+            <p class="eval-note"><strong>PM action:</strong> Own the golden dataset. A golden set built by engineering without PM input will miss the NBFC-specific edge cases that matter most — partial NACH bounce after salary delay, AA consent lapse mid-journey, CIBIL score stale by 90 days.</p>
+          </article>
+
+          <!-- ONLINE EVALS -->
+          <article class="eval-card" style="border-left: 4px solid #2563eb">
+            <div class="eval-card-header">
+              <span class="eval-badge" style="background:#dbeafe;color:#2563eb">Online Evals</span>
+              <h3>Live production signal monitoring</h3>
+            </div>
+            <p>Run continuously in production. Track real customer outcomes — not just model outputs — to catch drift that offline evals miss.</p>
+            <table class="eval-table">
+              <thead><tr><th>NBFC Use Case</th><th>Key Metric</th><th>Alert Threshold</th></tr></thead>
+              <tbody>
+                <tr><td>AI servicing copilot</td><td>First-contact resolution rate</td><td>&lt; 70% → escalate</td></tr>
+                <tr><td>LOS auto-underwriting</td><td>Auto-approval rate by segment</td><td>± 5% vs. baseline</td></tr>
+                <tr><td>AA consent flow</td><td>Consent completion rate</td><td>&lt; 75% → investigate</td></tr>
+                <tr><td>GRO escalations</td><td>AI-driven complaint rate</td><td>Any week-on-week rise</td></tr>
+                <tr><td>Collections AI</td><td>Self-cure rate (1–30 DPD)</td><td>&lt; target → shadow mode</td></tr>
+              </tbody>
+            </table>
+            <p class="eval-note"><strong>PM action:</strong> Define your rollback trigger before launch — not after the first incident. In a UPI copilot, a 1% increase in GRO complaints is a rollback trigger. In LOS, a 5% drop in auto-approval rate for a segment is a fairness signal, not just a business metric.</p>
+          </article>
+
+          <!-- COMPLIANCE EVALS -->
+          <article class="eval-card" style="border-left: 4px solid #7c3aed">
+            <div class="eval-card-header">
+              <span class="eval-badge" style="background:#ede9fe;color:#7c3aed">Compliance Evals</span>
+              <h3>RBI, PMLA &amp; DPDP adherence checks</h3>
+            </div>
+            <p>Run on every release and monthly in production. These are the checks that determine whether the NBFC passes or fails an RBI inspection. Zero tolerance — a single breach can trigger a show-cause notice.</p>
+            <table class="eval-table">
+              <thead><tr><th>Obligation</th><th>Eval Check</th><th>Target</th></tr></thead>
+              <tbody>
+                <tr><td>RBI DLG 2022 §10</td><td>MITC disclosure rate in LOS</td><td>100% — no exceptions</td></tr>
+                <tr><td>RBI DLG 2022</td><td>AI decisions with source citation</td><td>100%</td></tr>
+                <tr><td>PMLA monitoring</td><td>Transaction flag false positive rate</td><td>&lt; 1%</td></tr>
+                <tr><td>PMLA monitoring</td><td>Flag false negative rate</td><td>0% on test cases</td></tr>
+                <tr><td>DPDP Act 2023</td><td>AA consent captured before data use</td><td>100%</td></tr>
+                <tr><td>RBI audit trail</td><td>Agent decision log completeness</td><td>100% — 5-year retention</td></tr>
+              </tbody>
+            </table>
+            <p class="eval-note"><strong>PM action:</strong> Compliance evals require a named compliance owner — not just an engineering ticket. Review with legal before every release. Build a test suite of adversarial prompts that specifically probe MITC bypass, Aadhaar data leakage, and PMLA evasion paths.</p>
+          </article>
+
+          <!-- FAIRNESS EVALS -->
+          <article class="eval-card" style="border-left: 4px solid #ea580c">
+            <div class="eval-card-header">
+              <span class="eval-badge" style="background:#ffedd5;color:#ea580c">Fairness Evals</span>
+              <h3>Equity across segments, geographies &amp; tiers</h3>
+            </div>
+            <p>Run quarterly at minimum. Indian NBFC AI systems serve enormously diverse populations — fairness gaps that are invisible in aggregate metrics show up here.</p>
+            <table class="eval-table">
+              <thead><tr><th>Dimension</th><th>Eval Check</th><th>Target</th></tr></thead>
+              <tbody>
+                <tr><td>CIBIL score bands</td><td>Approval rate gap (&lt;650 vs. 750+)</td><td>&lt; 5% unexplained gap</td></tr>
+                <tr><td>Geographic tier</td><td>Latency parity (metro vs. Tier 2/3)</td><td>p95 within 20% of metro</td></tr>
+                <tr><td>Language</td><td>Intent accuracy (Hindi vs. English)</td><td>&lt; 3% accuracy gap</td></tr>
+                <tr><td>Income segment</td><td>Loan eligibility accuracy by income band</td><td>No statistically significant gap</td></tr>
+                <tr><td>Gender</td><td>Credit decision rate by gender</td><td>Audit for unexplained gaps quarterly</td></tr>
+              </tbody>
+            </table>
+            <p class="eval-note"><strong>PM action:</strong> Fairness evals require disaggregated test data. A model that appears 90% accurate overall may be 98% accurate for metro English speakers and 78% for Tier 3 Hindi speakers — and that gap is both a business risk (lost TAM) and a future regulatory risk as RBI's algorithmic fairness scrutiny grows.</p>
+          </article>
+
+        </div>
+
+        <div class="eval-cadence">
+          <h3>Eval Cadence for NBFC AI Teams</h3>
+          <div class="cadence-grid">
+            <div class="cadence-item">
+              <span class="cadence-freq">Every release</span>
+              <span>Offline eval regression suite · Compliance checklist · MITC disclosure rate</span>
+            </div>
+            <div class="cadence-item">
+              <span class="cadence-freq">Weekly</span>
+              <span>Online production metrics review · GRO complaint trend · Auto-approval rate drift</span>
+            </div>
+            <div class="cadence-item">
+              <span class="cadence-freq">Monthly</span>
+              <span>Model risk committee review · PMLA false positive/negative audit · AA consent drop-off analysis</span>
+            </div>
+            <div class="cadence-item">
+              <span class="cadence-freq">Quarterly</span>
+              <span>Fairness eval across CIBIL bands and geographic tiers · Full golden dataset refresh · RBI inspection readiness review</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> Evals are not engineering deliverables — they are product deliverables. The PM owns the golden dataset, defines the compliance thresholds, and signs off on the fairness eval results. When the RBI inspector asks "how do you know your AI model is not discriminating against Tier 3 customers?", the answer is in your quarterly fairness eval report, not in your model card.
+        </div>
       </section>
 
-      <!-- ═══════════════════ SECTION 10: LEARNING PATH ═══════════════════ -->
+      <!-- ═══════════════════ SECTION 9: LEARNING PATH ═══════════════════ -->
       <section class="panel" id="learning-path">
-        <h2>10) Your Personalised AI PM Learning Path</h2>
-        <p>Tell us about yourself and Claude Opus will generate a highly specific 12-week learning plan tailored to your role, India fintech domain, and goals — grounded in RBI regulations, NPCI infrastructure, and real patterns from India's digital lending and payments ecosystem. Enter your Anthropic API key below — it stays in your browser and is never sent anywhere except directly to Anthropic.</p>
+        <h2>9) Your Personalised AI PM Learning Path</h2>
+        <p>Tell us about yourself and Claude Opus will generate a highly specific 12-week learning plan tailored to your role, NBFC domain, and goals — grounded in RBI regulations, NPCI infrastructure, and real patterns from India's digital lending ecosystem. Enter your Anthropic API key below — it stays in your browser and is never sent anywhere except directly to Anthropic.</p>
         <form id="lp-form">
           <div class="lp-form-grid">
             <label style="grid-column:1/-1">Anthropic API key <span class="lp-hint">(starts with sk-ant-… — stored only in this tab, never logged)</span>
@@ -595,22 +825,22 @@
                 <option>Strong — shipped multiple AI products, comfortable with evals</option>
               </select>
             </label>
-            <label>Primary product domain
+            <label>Primary NBFC product domain
               <select name="domain" required>
                 <option value="">Select…</option>
                 <option>Consumer Lending / NBFC Digital Credit</option>
+                <option>Loan Origination System (LOS)</option>
+                <option>Loan Management System (LMS)</option>
+                <option>Collections &amp; Recovery</option>
+                <option>CRM &amp; Lead Management</option>
                 <option>UPI / Payments &amp; NACH</option>
                 <option>KYC / Aadhaar / CKYC</option>
-                <option>Customer Servicing &amp; Support</option>
-                <option>Fraud Detection &amp; Prevention</option>
                 <option>Account Aggregator (AA) Platform</option>
-                <option>Wealth Management / MF / SEBI-regulated</option>
-                <option>Insurance / IRDAI</option>
-                <option>B2B / Enterprise Fintech</option>
+                <option>Fraud Detection &amp; Prevention</option>
                 <option>Lending-as-a-Service / Co-Lending</option>
               </select>
             </label>
-            <label>Your top learning goal <span class="lp-hint">(be specific — e.g. "ship a policy RAG assistant for credit underwriters by Q3")</span>
+            <label>Your top learning goal <span class="lp-hint">(be specific — e.g. "build an EWS model for my LMS team by Q3")</span>
               <textarea name="goals" rows="3" placeholder="Describe what you want to be able to do in 12 weeks…" required></textarea>
             </label>
           </div>
@@ -624,7 +854,7 @@
     </main>
 
     <footer class="footer">
-      <p>Use this guide as a living India fintech artifact: align it with RBI regulatory updates, NPCI circular changes, DPDP Act obligations, and your product risk appetite every quarter.</p>
+      <p>Use this guide as a living NBFC AI artifact: align it with RBI regulatory updates, NPCI circular changes, DPDP Act obligations, and your NBFC's product risk appetite every quarter.</p>
     </footer>
 
     <script src="script.js"></script>
