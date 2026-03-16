@@ -11,6 +11,11 @@ const diagramData = {
       questions: ["Does the UI render streaming responses or wait for full completion on a 4G connection?", "What is the p95 time-to-first-byte from your primary metros and Tier 2/3 cities (e.g. Patna, Surat)?"],
       metric: "Time-to-first-token (TTFT)",
       slo: "< 800ms perceived wait before first text appears on 4G",
+      resources: [
+        { title: "web.dev — Optimize Time to First Byte", url: "https://web.dev/articles/optimize-ttfb", type: "guide", tag: "global" },
+        { title: "MDN — Streaming Fetch API", url: "https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams", type: "docs", tag: "global" },
+        { title: "RBI Digital Lending Guidelines 2022", url: "https://rbi.org.in/Scripts/NotificationUser.aspx?Id=12382", type: "regulation", tag: "india" },
+      ],
     },
     cdn: {
       type: "cache",
@@ -21,6 +26,10 @@ const diagramData = {
       questions: ["Are static assets served from the nearest Indian edge PoP?", "What is the cache-hit rate for the app shell across Tier 2/3 traffic?"],
       metric: "Cache-hit rate for static assets",
       slo: "> 95% cache-hit rate; < 50ms TTFB from Indian metros",
+      resources: [
+        { title: "Google SRE Book — Ch 7: The Evolution of Automation", url: "https://sre.google/sre-book/evolution-automation/", type: "guide", tag: "global" },
+        { title: "web.dev — Content Delivery Networks", url: "https://web.dev/articles/content-delivery-networks", type: "guide", tag: "global" },
+      ],
     },
     server: {
       type: "server",
@@ -31,6 +40,11 @@ const diagramData = {
       questions: ["What is the p95 server-side latency excluding model inference — BRE + AA pull + CKYC?", "Where do PMLA and DPDP Act consent guardrails run — pre-model, post-model, or both?"],
       metric: "Server-side processing latency (excl. model)",
       slo: "< 150ms for orchestration overhead including BRE and CKYC lookup",
+      resources: [
+        { title: "Google SRE Book — Ch 4: Service Level Objectives", url: "https://sre.google/sre-book/service-level-objectives/", type: "guide", tag: "global" },
+        { title: "Anthropic — Building Effective Agents", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview", type: "docs", tag: "global" },
+        { title: "RBI PMLA Master Direction 2016 (amended 2023)", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=11566", type: "regulation", tag: "india" },
+      ],
     },
     db: {
       type: "database",
@@ -41,6 +55,11 @@ const diagramData = {
       questions: ["Are AI credit decisions stored with model version, CIBIL bureau snapshot, and AA consent reference?", "What is the data retention period for AI audit logs — does it meet RBI's minimum 5-year requirement for loan records?"],
       metric: "Audit log completeness rate",
       slo: "100% of AI-assisted decisions logged with full RBI-format context",
+      resources: [
+        { title: "Google SRE Workbook — Data Processing Pipelines", url: "https://sre.google/workbook/data-processing/", type: "guide", tag: "global" },
+        { title: "RBI Master Direction — KYC 2016 (updated)", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=11566", type: "regulation", tag: "india" },
+        { title: "DPDP Act 2023 — Full Text (MeitY)", url: "https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9-5316-4ef0-a86f-af5f7663ffe4.pdf", type: "regulation", tag: "india" },
+      ],
     },
     cache: {
       type: "cache",
@@ -51,6 +70,11 @@ const diagramData = {
       questions: ["What is the cache-hit rate for RBI policy and CKYC context lookups?", "What is the TTL strategy — do stale CKYC or bureau caches create RBI compliance or credit risk?"],
       metric: "Cache-hit rate for policy and bureau context lookups",
       slo: "> 70% hit rate; TTL aligned with RBI circular update cadence and bureau data freshness",
+      resources: [
+        { title: "Redis — Caching Best Practices", url: "https://redis.io/docs/latest/develop/use/client-side-caching/", type: "docs", tag: "global" },
+        { title: "Google SRE Book — Ch 22: Addressing Cascading Failures", url: "https://sre.google/sre-book/addressing-cascading-failures/", type: "guide", tag: "global" },
+        { title: "CKYC Registry — Operating Guidelines", url: "https://rbi.org.in/scripts/FAQView.aspx?Id=125", type: "regulation", tag: "india" },
+      ],
     },
   },
 
@@ -64,6 +88,11 @@ const diagramData = {
       questions: ["Is there a BRE fallback UI for when the AI pipeline is unavailable?", "What is the escalation path from AI response to a human GRO agent under RBI Digital Lending Guidelines?"],
       metric: "AI feature availability rate",
       slo: "> 99.9% availability with deterministic BRE fallback on NBFC lending flows",
+      resources: [
+        { title: "Google Material Design — Mobile UX Guidelines", url: "https://m3.material.io/", type: "guide", tag: "global" },
+        { title: "RBI DLG 2022 — Customer-Facing Disclosure Requirements", url: "https://rbi.org.in/Scripts/NotificationUser.aspx?Id=12382", type: "regulation", tag: "india" },
+        { title: "NPCI UPI Developer Portal", url: "https://www.npci.org.in/what-we-do/upi/product-overview", type: "docs", tag: "india" },
+      ],
     },
     gateway: {
       type: "server",
@@ -74,6 +103,10 @@ const diagramData = {
       questions: ["Are per-customer rate limits set for CKYC, AA FIP, and NPCI API calls made by the AI feature?", "Does the gateway mask Aadhaar numbers and redact DPDP-sensitive PII before they reach the model service?"],
       metric: "Gateway-level policy enforcement rate",
       slo: "100% of requests authenticated and Aadhaar/PII-masked before model access",
+      resources: [
+        { title: "OWASP API Security Top 10", url: "https://owasp.org/API-Security/", type: "guide", tag: "global" },
+        { title: "DPDP Act 2023 — Consent and Data Masking", url: "https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9-5316-4ef0-a86f-af5f7663ffe4.pdf", type: "regulation", tag: "india" },
+      ],
     },
     "auth-service": {
       type: "server",
@@ -84,6 +117,11 @@ const diagramData = {
       questions: ["What AA data categories (bank statements, salary, GST, MF) does the AI service request, and is each justified?", "Are Aadhaar OTP token expiry and AA consent validity periods aligned with session risk level?"],
       metric: "Auth failure rate and AA consent scope compliance",
       slo: "Zero over-scoped AA consent requests; 100% Aadhaar OTP sessions expire within UIDAI-mandated TTL",
+      resources: [
+        { title: "OAuth 2.0 Security Best Current Practice", url: "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics", type: "paper", tag: "global" },
+        { title: "RBI AA Master Direction 2016 (amended)", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=10598", type: "regulation", tag: "india" },
+        { title: "Sahamati — Account Aggregator Technical Specs", url: "https://sahamati.org.in/aa-ecosystem/", type: "docs", tag: "india" },
+      ],
     },
     "policy-engine": {
       type: "server",
@@ -94,6 +132,11 @@ const diagramData = {
       questions: ["Does the BRE gate model input (eligibility checks), model output (MITC compliance), or both?", "How quickly can new RBI Master Direction rules be deployed into the BRE without a model retrain?"],
       metric: "RBI policy violation detection rate",
       slo: "< 0.1% undetected RBI or PMLA policy breach rate at launch",
+      resources: [
+        { title: "Google SRE Book — Ch 6: Monitoring Distributed Systems", url: "https://sre.google/sre-book/monitoring-distributed-systems/", type: "guide", tag: "global" },
+        { title: "RBI Fair Practices Code for NBFCs", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=12256", type: "regulation", tag: "india" },
+        { title: "RBI PMLA Master Direction 2016", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=11566", type: "regulation", tag: "india" },
+      ],
     },
     "product-service": {
       type: "server",
@@ -104,6 +147,11 @@ const diagramData = {
       questions: ["Which NPCI/CBS endpoints can the AI call autonomously vs. with maker-checker human approval?", "Are all AI-initiated UPI and NACH transactions covered by a unique idempotency key?"],
       metric: "Unauthorised NPCI/CBS action rate",
       slo: "Zero AI-initiated actions outside defined NPCI/CBS permission scope; 100% idempotency key coverage",
+      resources: [
+        { title: "Stripe API Design — Idempotency Keys", url: "https://stripe.com/docs/api/idempotent_requests", type: "docs", tag: "global" },
+        { title: "NPCI NACH Product Overview", url: "https://www.npci.org.in/what-we-do/nach/product-overview", type: "docs", tag: "india" },
+        { title: "NPCI UPI Technical Specifications", url: "https://www.npci.org.in/what-we-do/upi/product-overview", type: "docs", tag: "india" },
+      ],
     },
     aggregator: {
       type: "server",
@@ -114,6 +162,11 @@ const diagramData = {
       questions: ["What is the p95 latency for AA FIP data pull from your top-5 partner banks?", "Are parallel service calls used for CKYC, CIBIL, and CBS queries where AA consent allows?"],
       metric: "Aggregation p95 latency across India Stack services",
       slo: "< 3s for AA FIP pull; < 500ms for CKYC + CIBIL combined; overall aggregation < 4s",
+      resources: [
+        { title: "Anthropic — Prompt Engineering Guide", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview", type: "docs", tag: "global" },
+        { title: "iSPIRT Account Aggregator Framework", url: "https://ispirt.in/account-aggregator/", type: "docs", tag: "india" },
+        { title: "Sahamati — AA Technical Specification", url: "https://sahamati.org.in/aa-ecosystem/", type: "docs", tag: "india" },
+      ],
     },
   },
 
@@ -127,6 +180,11 @@ const diagramData = {
       questions: ["Where does Aadhaar/PAN redaction happen — client-side, gateway, or app server?", "Is DPDP Act consent verification logged before any customer PII enters the model context?"],
       metric: "PII leak rate into model context",
       slo: "Zero Aadhaar/PAN/UPI ID reaching the model without explicit DPDP Act consent classification",
+      resources: [
+        { title: "Anthropic — Prompt Engineering Overview", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview", type: "docs", tag: "global" },
+        { title: "OWASP — LLM Top 10 (Prompt Injection)", url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/", type: "guide", tag: "global" },
+        { title: "DPDP Act 2023 — MeitY Full Text", url: "https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9-5316-4ef0-a86f-af5f7663ffe4.pdf", type: "regulation", tag: "india" },
+      ],
     },
     tokenizer: {
       type: "server",
@@ -137,6 +195,11 @@ const diagramData = {
       questions: ["What is the average token count per request for Hindi vs. English queries in your feature?", "Is there a token budget alert when Hindi system prompts exceed your cost threshold?"],
       metric: "Average input tokens per request (by language)",
       slo: "Track cost-per-request by language; alert if Hindi/Indic system prompt exceeds 20% of token budget",
+      resources: [
+        { title: "Hugging Face — BPE Tokenization Explained", url: "https://huggingface.co/learn/nlp-course/en/chapter6/5", type: "guide", tag: "global" },
+        { title: "OpenAI Tiktoken (tokenizer library)", url: "https://github.com/openai/tiktoken", type: "docs", tag: "global" },
+        { title: "AI4Bharat — IndicNLP Benchmarks", url: "https://ai4bharat.iitm.ac.in/", type: "paper", tag: "india" },
+      ],
     },
     transformer: {
       type: "ai",
@@ -147,6 +210,11 @@ const diagramData = {
       questions: ["What model are you using, and what is its p95 inference latency at your AA bank statement token volume (typically 3,000–5,000 tokens)?", "Are you streaming output, or blocking on the full credit explanation response?"],
       metric: "Model inference latency (p50 / p95)",
       slo: "p95 inference < 3s for NBFC servicing; stream output for > 500 token responses; budget AA context tokens before launch",
+      resources: [
+        { title: "Vaswani et al. — Attention Is All You Need (2017)", url: "https://arxiv.org/abs/1706.03762", type: "paper", tag: "global" },
+        { title: "Jay Alammar — The Illustrated Transformer", url: "https://jalammar.github.io/illustrated-transformer/", type: "guide", tag: "global" },
+        { title: "Anthropic — Research on Interpretability", url: "https://www.anthropic.com/research", type: "paper", tag: "global" },
+      ],
     },
     output: {
       type: "server",
@@ -157,6 +225,10 @@ const diagramData = {
       questions: ["What temperature and sampling parameters are set for your NBFC credit decision prompts?", "Are output constraints applied to prevent the model from generating loan terms or MITC clauses not pre-approved by compliance?"],
       metric: "Output consistency rate across identical credit inputs",
       slo: "Temperature ≤ 0.2 for any output affecting a regulated NBFC credit or PMLA decision",
+      resources: [
+        { title: "Anthropic — Temperature and Sampling Guide", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview", type: "docs", tag: "global" },
+        { title: "RBI Digital Lending Guidelines 2022 — Section 10 (Disclosure)", url: "https://rbi.org.in/Scripts/NotificationUser.aspx?Id=12382", type: "regulation", tag: "india" },
+      ],
     },
     embedder: {
       type: "ai",
@@ -167,6 +239,11 @@ const diagramData = {
       questions: ["Is the embedding model multilingual or adapted for Hindi/Indic financial text?", "What is the re-embedding cost when RBI issues a new Master Direction circular?"],
       metric: "Retrieval precision@k for RBI policy queries",
       slo: "Precision@5 > 0.85 on a golden evaluation set of RBI policy and MITC questions",
+      resources: [
+        { title: "Anthropic — Embeddings and Retrieval", url: "https://docs.anthropic.com/en/docs/build-with-claude/embeddings", type: "docs", tag: "global" },
+        { title: "MTEB Leaderboard — Embedding Model Comparison", url: "https://huggingface.co/spaces/mteb/leaderboard", type: "guide", tag: "global" },
+        { title: "AI4Bharat — Multilingual NLP for Indian Languages", url: "https://ai4bharat.iitm.ac.in/", type: "paper", tag: "india" },
+      ],
     },
     "vector-store": {
       type: "database",
@@ -177,6 +254,10 @@ const diagramData = {
       questions: ["What is the p95 ANN query latency at your RBI circular index size?", "Are DPDP Act access controls and audit logs on the vector store equivalent to those on the AA-consented source documents?"],
       metric: "ANN query latency and RBI circular index freshness",
       slo: "< 30ms p95 retrieval; RBI circular index updates within 24h of any new Master Direction",
+      resources: [
+        { title: "Qdrant — Vector Database Documentation", url: "https://qdrant.tech/documentation/", type: "docs", tag: "global" },
+        { title: "pgvector — Open-Source Vector Similarity for Postgres", url: "https://github.com/pgvector/pgvector", type: "docs", tag: "global" },
+      ],
     },
   },
 
@@ -190,6 +271,11 @@ const diagramData = {
       questions: ["Who is the named RBI compliance data owner for each source document type (Master Directions, MITC, DLG)?", "What is the SLA for reflecting a new RBI circular in the vector store?"],
       metric: "RBI source document freshness lag",
       slo: "RBI circulars and MITC documents re-ingested within 24h of any regulatory update",
+      resources: [
+        { title: "Anthropic — RAG Best Practices", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags", type: "docs", tag: "global" },
+        { title: "RBI Master Direction Repository", url: "https://rbi.org.in/Scripts/BS_ViewMasterDirections.aspx", type: "regulation", tag: "india" },
+        { title: "Sahamati — AA Ecosystem Technical Specs", url: "https://sahamati.org.in/aa-ecosystem/", type: "docs", tag: "india" },
+      ],
     },
     chunker: {
       type: "server",
@@ -200,6 +286,10 @@ const diagramData = {
       questions: ["Has the chunking strategy been evaluated against a golden set of RBI policy and MITC questions?", "Are chunk boundaries aware of RBI document structure (numbered clauses, annexures, tables)?"],
       metric: "Chunk-level RBI policy retrieval precision",
       slo: "Evaluate chunking strategy against 50+ golden RBI Q&A and MITC pairs before production",
+      resources: [
+        { title: "LangChain — Text Splitters Documentation", url: "https://python.langchain.com/docs/concepts/text_splitters/", type: "docs", tag: "global" },
+        { title: "Pinecone — Chunking Strategies Guide", url: "https://www.pinecone.io/learn/chunking-strategies/", type: "guide", tag: "global" },
+      ],
     },
     "embedder-ing": {
       type: "ai",
@@ -210,6 +300,10 @@ const diagramData = {
       questions: ["What is the total re-ingestion time for a full RBI policy corpus refresh?", "Is incremental ingestion supported on new RBI Master Directions without re-embedding the entire corpus?"],
       metric: "Re-ingestion pipeline throughput for RBI circulars",
       slo: "Incremental RBI circular updates ingested within 1 hour; full refresh < 4 hours",
+      resources: [
+        { title: "Anthropic — Embeddings Guide", url: "https://docs.anthropic.com/en/docs/build-with-claude/embeddings", type: "docs", tag: "global" },
+        { title: "MTEB Leaderboard — Embedding Benchmarks", url: "https://huggingface.co/spaces/mteb/leaderboard", type: "guide", tag: "global" },
+      ],
     },
     "vector-db": {
       type: "database",
@@ -220,6 +314,11 @@ const diagramData = {
       questions: ["Are DPDP Act access controls on the vector store equivalent to those on the AA-consented source documents?", "Is the chunk-to-RBI-circular mapping (circular number, effective date) auditable for RBI review?"],
       metric: "RBI circular index freshness and DPDP access audit coverage",
       slo: "Full DPDP-compliant access audit trail; RBI circular freshness SLA ≤ 24h from publication",
+      resources: [
+        { title: "Qdrant — Vector Search Documentation", url: "https://qdrant.tech/documentation/", type: "docs", tag: "global" },
+        { title: "pgvector — Postgres Vector Extension", url: "https://github.com/pgvector/pgvector", type: "docs", tag: "global" },
+        { title: "DPDP Act 2023 — Data Storage Obligations", url: "https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9-5316-4ef0-a86f-af5f7663ffe4.pdf", type: "regulation", tag: "india" },
+      ],
     },
     query: {
       type: "client",
@@ -230,6 +329,10 @@ const diagramData = {
       questions: ["Are low-confidence RBI policy retrievals flagged for human compliance review?", "Is query logging in place by language (Hindi/English) to identify systematic MITC retrieval failures?"],
       metric: "Query intent coverage rate by language",
       slo: "Log all queries with language tag; review low-confidence RBI policy retrievals weekly",
+      resources: [
+        { title: "Anthropic — Prompt Engineering for RAG", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview", type: "docs", tag: "global" },
+        { title: "AI4Bharat — Multilingual NLP Resources", url: "https://ai4bharat.iitm.ac.in/", type: "paper", tag: "india" },
+      ],
     },
     retriever: {
       type: "server",
@@ -240,6 +343,10 @@ const diagramData = {
       questions: ["What value of k is used for RBI policy retrieval, and has it been evaluated against MITC citation quality?", "Is hybrid retrieval (semantic + BM25 keyword) used for queries containing RBI circular numbers or MITC clause identifiers?"],
       metric: "Retrieval precision@k for RBI and MITC queries",
       slo: "Precision@5 > 0.85 on RBI policy eval set; p95 retrieval latency < 30ms",
+      resources: [
+        { title: "Lewis et al. — RAG: Retrieval-Augmented Generation (2020)", url: "https://arxiv.org/abs/2005.11401", type: "paper", tag: "global" },
+        { title: "Anthropic Cookbook — RAG with Claude", url: "https://github.com/anthropics/anthropic-cookbook/tree/main/misc/retrieval_augmented_generation", type: "guide", tag: "global" },
+      ],
     },
     reranker: {
       type: "ai",
@@ -250,6 +357,10 @@ const diagramData = {
       questions: ["Is reranking enabled for all MITC and RBI policy queries, or only high-stakes credit decision ones?", "Has the reranker been evaluated against the base retriever on your RBI Master Direction eval set?"],
       metric: "Post-rerank precision gain vs. base retriever on RBI policy queries",
       slo: "Reranking should improve MITC citation precision@3 by ≥ 10% on eval set to justify latency cost",
+      resources: [
+        { title: "Cross-Encoders and Reranking — SBERT Documentation", url: "https://www.sbert.net/examples/applications/cross-encoder/README.html", type: "docs", tag: "global" },
+        { title: "Cohere — Rerank API Documentation", url: "https://docs.cohere.com/docs/rerank-2", type: "docs", tag: "global" },
+      ],
     },
     llm: {
       type: "ai",
@@ -260,6 +371,10 @@ const diagramData = {
       questions: ["Does the system prompt require the model to cite the specific RBI circular number and MITC version?", "What is the model's hallucination rate on your RBI Master Direction and MITC eval set?"],
       metric: "RBI-cited answer rate and policy hallucination rate",
       slo: "100% of MITC-related answers cite a specific RBI circular and MITC version; hallucination rate < 2% on RBI eval set",
+      resources: [
+        { title: "Anthropic — Claude Model Card", url: "https://docs.anthropic.com/en/docs/about-claude/models", type: "docs", tag: "global" },
+        { title: "RBI DLG 2022 — Section 10 (Traceability)", url: "https://rbi.org.in/Scripts/NotificationUser.aspx?Id=12382", type: "regulation", tag: "india" },
+      ],
     },
     "rag-response": {
       type: "server",
@@ -270,6 +385,10 @@ const diagramData = {
       questions: ["Does the UI display the RBI circular number and MITC version alongside each AI-generated credit answer?", "Is there a GRO escalation link in every AI response under RBI's Grievance Redressal Officer requirement?"],
       metric: "RBI-traceable answer rate (citation + GRO link present)",
       slo: "100% of Digital Lending-regulated answers include RBI circular citation, MITC version, and GRO escalation link",
+      resources: [
+        { title: "Anthropic — Citations in Claude", url: "https://docs.anthropic.com/en/docs/build-with-claude/citations", type: "docs", tag: "global" },
+        { title: "RBI GRO (Grievance Redressal) Master Direction", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=12552", type: "regulation", tag: "india" },
+      ],
     },
   },
 
@@ -283,6 +402,10 @@ const diagramData = {
       questions: ["What is the intent classification accuracy for your top 10 NBFC/UPI use cases?", "What is the GRO escalation path when intent confidence falls below 0.7 threshold?"],
       metric: "Intent classification accuracy",
       slo: "> 92% accuracy on top 10 NBFC intents; human GRO handoff below 0.7 confidence",
+      resources: [
+        { title: "Anthropic — Building Effective Agents", url: "https://www.anthropic.com/engineering/building-effective-agents", type: "guide", tag: "global" },
+        { title: "Google — Intent Classification Best Practices", url: "https://cloud.google.com/dialogflow/es/docs/concepts/intent", type: "docs", tag: "global" },
+      ],
     },
     planner: {
       type: "ai",
@@ -293,6 +416,11 @@ const diagramData = {
       questions: ["What is the maximum number of reasoning steps allowed per NBFC loan query, and what NPCI session timeout does this need to fit within?", "Is there a ₹-denominated cost budget per agent invocation that triggers a graceful BRE-only fallback?"],
       metric: "NBFC agent task completion rate and step count distribution",
       slo: "Define max steps, max latency (NPCI session timeout aligned), and max ₹ cost per agent invocation before launch",
+      resources: [
+        { title: "Yao et al. — ReAct: Synergizing Reasoning and Acting (2023)", url: "https://arxiv.org/abs/2210.03629", type: "paper", tag: "global" },
+        { title: "Anthropic — Tool Use Documentation", url: "https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview", type: "docs", tag: "global" },
+        { title: "Google SRE Workbook — Managing Incidents", url: "https://sre.google/workbook/incident-response/", type: "guide", tag: "global" },
+      ],
     },
     "tool-web": {
       type: "server",
@@ -303,6 +431,10 @@ const diagramData = {
       questions: ["Is regulatory search restricted to RBI.org.in, NPCI.org.in, and other approved government domains?", "Are retrieved RBI circulars logged with circular number, publication date, and effective date for audit?"],
       metric: "Regulatory content audit coverage",
       slo: "100% of RBI content retrieved in regulated flows logged with source URL, circular number, and timestamp",
+      resources: [
+        { title: "Anthropic — Web Search Tool", url: "https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool", type: "docs", tag: "global" },
+        { title: "RBI Notifications Portal", url: "https://rbi.org.in/Scripts/BS_CircularIndexDisplay.aspx", type: "regulation", tag: "india" },
+      ],
     },
     "tool-db": {
       type: "database",
@@ -313,6 +445,11 @@ const diagramData = {
       questions: ["What AA data categories (bank statements, salary, GST, MF) are accessed per agent use case, and are all justified by the credit decision?", "Are CBS and AA data queries logged with the specific agent intent that triggered them?"],
       metric: "AA consent scope compliance rate",
       slo: "Zero agent AA or CBS queries outside the minimum consented data scope for each use case",
+      resources: [
+        { title: "Anthropic — Tool Use Patterns", url: "https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview", type: "docs", tag: "global" },
+        { title: "RBI AA Master Direction 2016", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=10598", type: "regulation", tag: "india" },
+        { title: "Sahamati — AA FIP Technical Specs", url: "https://sahamati.org.in/aa-ecosystem/", type: "docs", tag: "india" },
+      ],
     },
     "tool-api": {
       type: "server",
@@ -323,6 +460,11 @@ const diagramData = {
       questions: ["What ₹ value and action category thresholds require maker-checker human confirmation before NPCI/CBS execution?", "Are all UPI and NACH API calls idempotent with a unique idempotency key per agent invocation?"],
       metric: "Unauthorised NPCI/CBS action rate",
       slo: "Zero NPCI/CBS calls outside defined scope; 100% idempotency key coverage; maker-checker for NACH mandates > ₹50,000",
+      resources: [
+        { title: "Stripe — Idempotent Requests Pattern", url: "https://stripe.com/docs/api/idempotent_requests", type: "docs", tag: "global" },
+        { title: "NPCI UPI Settlement Framework", url: "https://www.npci.org.in/what-we-do/upi/product-overview", type: "docs", tag: "india" },
+        { title: "RBI PMLA Guidelines for NBFCs", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=11566", type: "regulation", tag: "india" },
+      ],
     },
     "tool-code": {
       type: "server",
@@ -333,6 +475,10 @@ const diagramData = {
       questions: ["Is the code execution sandbox fully network-isolated and DPDP Act compliant?", "What is the maximum execution time and resource limit per EMI calculation or MITC generation call?"],
       metric: "Code execution sandboxing compliance and MITC calculation accuracy",
       slo: "Zero sandbox escapes; execution timeout ≤ 30s; MITC calculations verified against CBS source of truth",
+      resources: [
+        { title: "Anthropic — Code Execution Tool", url: "https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/code-execution-tool", type: "docs", tag: "global" },
+        { title: "Google SRE Workbook — Safe Automation", url: "https://sre.google/workbook/non-abstract-design/", type: "guide", tag: "global" },
+      ],
     },
     memory: {
       type: "database",
@@ -343,6 +489,10 @@ const diagramData = {
       questions: ["What AA consent and credit decision data persists across sessions, and what is the DPDP Act retention and deletion policy?", "Is cross-session memory subject to the same AA consent validity period and RBI audit access controls as the CBS ledger?"],
       metric: "Memory context accuracy in multi-turn NBFC loan tasks",
       slo: "Cross-session memory subject to AA consent validity period, DPDP Act data minimisation, and RBI 5-year loan record retention",
+      resources: [
+        { title: "Anthropic — Memory Tool Documentation", url: "https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/memory-tool", type: "docs", tag: "global" },
+        { title: "DPDP Act 2023 — Data Minimisation & Retention", url: "https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9-5316-4ef0-a86f-af5f7663ffe4.pdf", type: "regulation", tag: "india" },
+      ],
     },
     "agent-response": {
       type: "server",
@@ -353,6 +503,11 @@ const diagramData = {
       questions: ["Is the NBFC agent audit log immutable, write-once, and in RBI-inspection-ready format?", "What is the retention period — does it meet RBI's minimum 5-year requirement for loan decision records under Digital Lending Guidelines?"],
       metric: "RBI audit log completeness rate",
       slo: "100% of NBFC agent actions logged with NPCI/CBS tool, AA data category, BRE output, MITC version, model version, and timestamp",
+      resources: [
+        { title: "Anthropic — Production Best Practices", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview", type: "docs", tag: "global" },
+        { title: "Google SRE Workbook — Postmortem Culture", url: "https://sre.google/workbook/postmortem-culture/", type: "guide", tag: "global" },
+        { title: "RBI DLG 2022 — Audit & Traceability Requirements", url: "https://rbi.org.in/Scripts/NotificationUser.aspx?Id=12382", type: "regulation", tag: "india" },
+      ],
     },
   },
 
@@ -366,6 +521,11 @@ const diagramData = {
       questions: ["Does the intake flow confirm AA consent scope and Aadhaar/V-KYC status before routing to the AI pipeline?", "What is the fallback experience when V-KYC verification fails or the customer hasn't yet completed AA consent?"],
       metric: "Intent-to-correct-route rate",
       slo: "> 95% of intents correctly classified and routed without human re-routing",
+      resources: [
+        { title: "Google Material Design — Input & Forms", url: "https://m3.material.io/", type: "guide", tag: "global" },
+        { title: "UIDAI — Aadhaar Authentication API", url: "https://uidai.gov.in/en/ecosystem/authentication-devices-documents.html", type: "docs", tag: "india" },
+        { title: "RBI V-KYC Master Direction", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=11566", type: "regulation", tag: "india" },
+      ],
     },
     safety: {
       type: "server",
@@ -376,6 +536,11 @@ const diagramData = {
       questions: ["Does the guardrail run both pre-model (eligibility gate) and post-model (MITC compliance check)?", "How quickly can new RBI Master Direction rules be deployed into the guardrail BRE without a model retrain?"],
       metric: "Regulatory policy breach detection rate",
       slo: "< 0.1% undetected RBI or PMLA policy breach at launch; 100% DPDP consent validated before model access",
+      resources: [
+        { title: "Anthropic — Constitutional AI and Safety", url: "https://www.anthropic.com/research", type: "paper", tag: "global" },
+        { title: "OWASP — LLM Top 10 Security Risks", url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/", type: "guide", tag: "global" },
+        { title: "RBI PMLA Master Direction 2016 (amended)", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=11566", type: "regulation", tag: "india" },
+      ],
     },
     router: {
       type: "server",
@@ -386,6 +551,11 @@ const diagramData = {
       questions: ["What CIBIL score band or loan value threshold triggers escalation from BRE to AI model to human review?", "Are route-level SLOs (latency, quality, compliance) defined and monitored separately for each risk tier?"],
       metric: "Approved decision cost per case by tier",
       slo: "100% of bureau-score-below-threshold or high-value decisions routed for human review; BRE handles > 60% of standard servicing intents",
+      resources: [
+        { title: "Anthropic — Prompt Routing Patterns", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/chain-of-thought", type: "docs", tag: "global" },
+        { title: "Google SRE Book — Ch 5: Eliminating Toil", url: "https://sre.google/sre-book/eliminating-toil/", type: "guide", tag: "global" },
+        { title: "RBI Fair Practices Code for NBFCs", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=12256", type: "regulation", tag: "india" },
+      ],
     },
     retrieval: {
       type: "database",
@@ -396,6 +566,11 @@ const diagramData = {
       questions: ["What is the p95 latency for AA FIP data pull from your top-5 partner banks?", "Are stale AA consent tokens and expired CKYC records caught at retrieval time before entering the model context?"],
       metric: "Cited-answer coverage and AA data freshness rate",
       slo: "< 3s AA FIP pull p95; RBI circular index freshness ≤ 24h; retrieval precision@5 > 0.85",
+      resources: [
+        { title: "Lewis et al. — RAG Paper (2020)", url: "https://arxiv.org/abs/2005.11401", type: "paper", tag: "global" },
+        { title: "Anthropic Cookbook — RAG Patterns", url: "https://github.com/anthropics/anthropic-cookbook/tree/main/misc/retrieval_augmented_generation", type: "guide", tag: "global" },
+        { title: "Sahamati — AA Data Flow Specifications", url: "https://sahamati.org.in/aa-ecosystem/", type: "docs", tag: "india" },
+      ],
     },
     model: {
       type: "ai",
@@ -406,6 +581,10 @@ const diagramData = {
       questions: ["Is temperature ≤ 0.2 for all credit decision and MITC disclosure outputs?", "What is the p95 inference latency at your AA bank statement token volume (typically 3,000–5,000 tokens)?"],
       metric: "Decision accuracy under RBI policy constraints",
       slo: "Temperature ≤ 0.2 for credit outputs; p95 inference < 3s for NBFC servicing flows",
+      resources: [
+        { title: "Anthropic — Claude Model Documentation", url: "https://docs.anthropic.com/en/docs/about-claude/models", type: "docs", tag: "global" },
+        { title: "Anthropic — Prompt Engineering Best Practices", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview", type: "docs", tag: "global" },
+      ],
     },
     tools: {
       type: "server",
@@ -416,6 +595,11 @@ const diagramData = {
       questions: ["Which NPCI/CBS endpoints can the AI call autonomously vs. with maker-checker human approval?", "Are all AI-initiated UPI and NACH transactions covered by a unique idempotency key per NPCI standards?"],
       metric: "Action success rate with zero unauthorised NPCI transactions",
       slo: "Zero AI-initiated actions outside defined NPCI/CBS permission scope; 100% idempotency key coverage on all NACH/UPI calls",
+      resources: [
+        { title: "Anthropic — Tool Use Overview", url: "https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview", type: "docs", tag: "global" },
+        { title: "NPCI NACH Technical Specifications", url: "https://www.npci.org.in/what-we-do/nach/product-overview", type: "docs", tag: "india" },
+        { title: "NPCI UPI API Integration Guide", url: "https://www.npci.org.in/what-we-do/upi/product-overview", type: "docs", tag: "india" },
+      ],
     },
     response: {
       type: "client",
@@ -426,6 +610,11 @@ const diagramData = {
       questions: ["Does every AI-generated credit explanation include MITC citations and a GRO escalation link as required by DLG 2022?", "What confidence label or disclaimer is shown when the model's credit explanation has low retrieval grounding?"],
       metric: "MITC disclosure rate and customer trust score",
       slo: "100% MITC disclosure rate; GRO link present in 100% of credit decision responses",
+      resources: [
+        { title: "Anthropic — Citations in Claude", url: "https://docs.anthropic.com/en/docs/build-with-claude/citations", type: "docs", tag: "global" },
+        { title: "RBI DLG 2022 — MITC Disclosure Requirements", url: "https://rbi.org.in/Scripts/NotificationUser.aspx?Id=12382", type: "regulation", tag: "india" },
+        { title: "RBI GRO Requirements for NBFCs", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=12552", type: "regulation", tag: "india" },
+      ],
     },
     feedback: {
       type: "ai",
@@ -436,6 +625,12 @@ const diagramData = {
       questions: ["Is the NBFC AI decision audit log immutable, write-once, and in RBI-inspection-ready format?", "Are monthly model risk committee reviews with compliance stakeholders scheduled before the feature goes live?"],
       metric: "Pre-release regression catch rate and RBI audit log completeness",
       slo: "100% of AI credit decisions logged with model version, CIBIL snapshot, AA consent reference; monthly fairness eval across CIBIL bands; 5-year retention",
+      resources: [
+        { title: "Google SRE Workbook — Monitoring and Alerting", url: "https://sre.google/workbook/alerting-on-slos/", type: "guide", tag: "global" },
+        { title: "Anthropic — Evaluating AI Systems", url: "https://www.anthropic.com/research", type: "paper", tag: "global" },
+        { title: "RBI Inspection and Audit Framework for NBFCs", url: "https://rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=12256", type: "regulation", tag: "india" },
+        { title: "DPDP Act 2023 — Data Audit Requirements", url: "https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9-5316-4ef0-a86f-af5f7663ffe4.pdf", type: "regulation", tag: "india" },
+      ],
     },
   },
 };
@@ -468,6 +663,15 @@ function renderArchInspector(panelId, nodeInfo) {
     ? `<p class="inspector-dt">Key Metric</p><p class="inspector-dd">${nodeInfo.metric}</p>
        <p class="inspector-dt">SLO Target</p><p class="inspector-dd">${nodeInfo.slo || "—"}</p>`
     : "";
+  const resourcesHtml = nodeInfo.resources && nodeInfo.resources.length
+    ? `<div class="inspector-resources">
+         <p class="inspector-dt" style="margin-top:10px">Learning Resources</p>
+         <ul class="resource-list">${nodeInfo.resources.map(r => {
+           const icon = { guide: "📖", paper: "📄", docs: "📘", video: "🎥", regulation: "⚖️" }[r.type] || "🔗";
+           const badge = r.tag === "india" ? '<span class="resource-tag-india">IN</span>' : '';
+           return `<li><a href="${r.url}" target="_blank" rel="noopener noreferrer" class="resource-link">
+             <span class="resource-icon">${icon}</span><span class="resource-title">${r.title}</span>${badge}</a></li>`;
+         }).join("")}</ul></div>` : "";
 
   panel.innerHTML = `
     ${badge}
@@ -477,6 +681,7 @@ function renderArchInspector(panelId, nodeInfo) {
     ${pmHtml}
     ${questionsHtml}
     <div class="inspector-dl">${metricHtml}</div>
+    ${resourcesHtml}
   `;
 }
 

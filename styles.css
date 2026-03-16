@@ -166,7 +166,7 @@ h1 {
 
 .diag-layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: 1fr 340px;
   gap: 12px;
   align-items: start;
 }
@@ -224,6 +224,10 @@ h1 {
   padding: 14px;
   background: #fefffe;
   min-height: 220px;
+  max-height: 560px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
 }
 .inspector-placeholder {
   color: var(--muted);
@@ -300,6 +304,14 @@ h1 {
   margin-top: 6px;
 }
 .inspector-dd { margin: 0 0 2px; font-size: 0.85rem; }
+
+.inspector-resources { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+.resource-list { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 4px; }
+.resource-link { display: flex; align-items: baseline; gap: 6px; padding: 5px 8px; border-radius: 6px; background: #f8fbf8; border: 1px solid transparent; text-decoration: none; color: var(--text); font-size: 0.8rem; line-height: 1.35; transition: border-color 120ms, background 120ms; }
+.resource-link:hover { border-color: var(--primary); background: var(--primary-soft); }
+.resource-icon { flex-shrink: 0; font-size: 0.75rem; }
+.resource-title { flex: 1; min-width: 0; }
+.resource-tag-india { flex-shrink: 0; padding: 1px 5px; border-radius: 3px; font-size: 0.6rem; font-weight: 700; background: #fff7ed; color: #c2410c; letter-spacing: 0.04em; }
 
 .code-block {
   background: #1a2a1e;
