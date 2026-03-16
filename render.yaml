@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: nbfc-guide
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false

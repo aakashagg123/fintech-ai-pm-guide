@@ -968,85 +968,28 @@ lpForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(lpForm);
-  const apiKey = formData.get("apiKey").trim();
   const role = formData.get("role");
   const experience = formData.get("experience");
   const domain = formData.get("domain");
   const goals = formData.get("goals");
-
-  if (!apiKey.startsWith("sk-ant-")) {
-    lpOutput.innerHTML = `<p style="color:#dc2626">API key should start with <code>sk-ant-</code>. Check your key at console.anthropic.com.</p>`;
-    return;
-  }
 
   lpSubmit.disabled = true;
   lpSubmit.classList.add("loading");
   lpSubmit.textContent = "Generating your learning path…";
   lpOutput.innerHTML = '<div class="lp-streaming"><em>Claude is thinking and writing your personalised plan…</em></div>';
 
-  const systemPrompt = `You are a world-class AI product management coach specialising in Indian fintech and India's regulated digital financial infrastructure.
-You produce highly structured, deeply specific learning paths for product managers transitioning into AI-powered product roles within India's financial ecosystem.
-Your output is always in rich markdown with clear headers, bullet points, week-by-week plans, and concrete deliverables.
-You are opinionated, precise, and avoid generic advice. Every recommendation is grounded in real India fintech patterns — referencing UPI/NPCI infrastructure, RBI regulations, Account Aggregator framework, NBFC digital lending, and the India Stack.`;
-
-  const userPrompt = `Generate a personalised 12-week AI PM learning path for the following person.
-
-Role: ${role}
-Current AI/ML experience: ${experience}
-Primary product domain: ${domain}
-Learning goals: ${goals}
-
-Structure your response as follows:
-
-## Your AI PM Learning Path
-_One sentence framing their specific journey._
-
-## Week-by-Week Plan
-For each week (1–12), provide:
-- **Week N: [Theme]**
-  - Focus: 1 sentence on what this week builds
-  - Learn: 2–3 specific concepts, papers, or frameworks
-  - Do: 1–2 concrete actions (write a doc, run an eval, shadow a call, etc.)
-  - Deliverable: what they should have at the end of the week
-
-## Domain-Specific Architecture Patterns to Master
-3–5 India fintech AI patterns directly relevant to their domain (e.g. AA-powered RAG for RBI policy retrieval, CKYC/PMLA guardrails, NBFC underwriting with CIBIL integration, UPI real-time fraud scoring, BRE + LLM hybrid for NBFC credit decisioning).
-
-## Key Stakeholder Conversations to Have
-4–6 specific conversations, with who and what to discuss.
-
-## Capstone Project
-One concrete project idea that would demonstrate AI PM fluency in their specific domain. Include scope, success metrics, and a one-paragraph pitch.
-
-## 3 Red Flags to Watch For
-The most common mistakes a PM at this stage makes in their domain.
-
-Be extremely specific. Reference real India fintech patterns, real metrics (e.g. "p95 < 300ms on NPCI rails", "CIBIL bureau hit rate > 95%", "AA consent completion rate > 80%", "MITC disclosure rate 100%"), and real Indian regulatory concepts (DPDP Act 2023, RBI Digital Lending Guidelines 2022, PMLA, FEMA, RBI AA Master Direction, Credit Information Companies Act, RBI Fair Practices Code, NPCI UPI framework, NACH regulations) as relevant to their specific domain. No generic global advice.`;
-
   let fullText = "";
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("/api/learning-path", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify({
-        model: "claude-opus-4-6",
-        max_tokens: 4096,
-        thinking: { type: "adaptive" },
-        stream: true,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userPrompt }],
-      }),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ role, experience, domain, goals }),
     });
 
     if (!response.ok) {
       const errBody = await response.json().catch(() => ({}));
-      throw new Error(errBody.error?.message || `HTTP ${response.status}`);
+      throw new Error(errBody.error || `HTTP ${response.status}`);
     }
 
     const reader = response.body.getReader();
@@ -1067,18 +1010,17 @@ Be extremely specific. Reference real India fintech patterns, real metrics (e.g.
       for (const line of lines) {
         if (!line.startsWith("data: ")) continue;
         const data = line.slice(6).trim();
-        if (!data || data === "[DONE]") continue;
+        if (!data) continue;
 
         let evt;
         try { evt = JSON.parse(data); } catch { continue; }
 
-        if (evt.type === "content_block_delta") {
-          const delta = evt.delta;
-          if (delta?.type === "text_delta" && delta.text) {
-            fullText += delta.text;
-            outputDiv.innerHTML = `<div>${simpleMarkdown(fullText)}</div>`;
-            lpOutput.scrollIntoView({ behavior: "smooth", block: "end" });
-          }
+        if (evt.text) {
+          fullText += evt.text;
+          outputDiv.innerHTML = `<div>${simpleMarkdown(fullText)}</div>`;
+          lpOutput.scrollIntoView({ behavior: "smooth", block: "end" });
+        } else if (evt.error) {
+          throw new Error(evt.error);
         }
       }
     }

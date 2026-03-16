@@ -22,10 +22,10 @@ app.post("/api/learning-path", async (req, res) => {
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
-  const systemPrompt = `You are a world-class AI product management coach specialising in fintech and financial services.
-You produce highly structured, deeply specific learning paths for product managers transitioning into AI-powered product roles.
+  const systemPrompt = `You are a world-class AI product management coach specialising in Indian fintech and India's regulated digital financial infrastructure.
+You produce highly structured, deeply specific learning paths for product managers transitioning into AI-powered product roles within India's financial ecosystem.
 Your output is always in rich markdown with clear headers, bullet points, week-by-week plans, and concrete deliverables.
-You are opinionated, precise, and avoid generic advice. Every recommendation is grounded in real fintech patterns.`;
+You are opinionated, precise, and avoid generic advice. Every recommendation is grounded in real India fintech patterns — referencing UPI/NPCI infrastructure, RBI regulations, Account Aggregator framework, NBFC digital lending, and the India Stack.`;
 
   const userPrompt = `Generate a personalised 12-week AI PM learning path for the following person.
 
@@ -48,7 +48,7 @@ For each week (1–12), provide:
   - Deliverable: what they should have at the end of the week
 
 ## Domain-Specific Architecture Patterns to Master
-3–5 fintech AI patterns directly relevant to their domain (e.g. RAG for policy retrieval, compliance guardrails, KYC/AML decisioning, real-time fraud scoring).
+3–5 India fintech AI patterns directly relevant to their domain (e.g. AA-powered RAG for RBI policy retrieval, CKYC/PMLA guardrails, NBFC underwriting with CIBIL integration, UPI real-time fraud scoring, BRE + LLM hybrid for NBFC credit decisioning).
 
 ## Key Stakeholder Conversations to Have
 4–6 specific conversations, with who and what to discuss.
@@ -59,7 +59,7 @@ One concrete project idea that would demonstrate AI PM fluency in their specific
 ## 3 Red Flags to Watch For
 The most common mistakes a PM at this stage makes in their domain.
 
-Be extremely specific. Reference real fintech patterns, real metrics (e.g. "p95 < 200ms", "false positive rate < 2%"), and real regulatory concepts (GDPR, FCRA, ECOA, PSD2, Basel III as relevant). No generic advice.`;
+Be extremely specific. Reference real India fintech patterns, real metrics (e.g. "p95 < 300ms on NPCI rails", "CIBIL bureau hit rate > 95%", "AA consent completion rate > 80%", "MITC disclosure rate 100%"), and real Indian regulatory concepts (DPDP Act 2023, RBI Digital Lending Guidelines 2022, PMLA, FEMA, RBI AA Master Direction, Credit Information Companies Act, RBI Fair Practices Code, NPCI UPI framework, NACH regulations) as relevant to their specific domain. No generic global advice.`;
 
   try {
     const stream = client.messages.stream({
