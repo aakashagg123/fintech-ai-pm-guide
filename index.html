@@ -23,15 +23,18 @@
     </header>
 
     <nav class="section-nav" aria-label="Guide sections">
-      <a class="nav-tab" href="#web"           data-section="web">Web Basics</a>
-      <a class="nav-tab" href="#apis"          data-section="apis">APIs &amp; Services</a>
-      <a class="nav-tab" href="#ai-blocks"     data-section="ai-blocks">LLM Mechanics</a>
-      <a class="nav-tab" href="#rag"           data-section="rag">RAG Pipeline</a>
-      <a class="nav-tab" href="#agents"        data-section="agents">Agents</a>
-      <a class="nav-tab" href="#stack"         data-section="stack">AI Product Stack</a>
-      <a class="nav-tab" href="#nbfc-systems"  data-section="nbfc-systems">NBFC Systems</a>
-      <a class="nav-tab" href="#evals"         data-section="evals">Evals</a>
-      <a class="nav-tab" href="#learning-path" data-section="learning-path">My Path</a>
+      <a class="nav-tab" href="#web"            data-section="web">Web Basics</a>
+      <a class="nav-tab" href="#apis"           data-section="apis">APIs &amp; Services</a>
+      <a class="nav-tab" href="#ai-blocks"      data-section="ai-blocks">LLM Mechanics</a>
+      <a class="nav-tab" href="#rag"            data-section="rag">RAG Pipeline</a>
+      <a class="nav-tab" href="#agents"         data-section="agents">Agents</a>
+      <a class="nav-tab" href="#stack"          data-section="stack">AI Product Stack</a>
+      <a class="nav-tab" href="#nbfc-systems"   data-section="nbfc-systems">NBFC Systems</a>
+      <a class="nav-tab" href="#evals"          data-section="evals">Evals</a>
+      <a class="nav-tab" href="#credit-intel"   data-section="credit-intel">Credit Intelligence</a>
+      <a class="nav-tab" href="#india-stack"    data-section="india-stack">India Stack</a>
+      <a class="nav-tab" href="#portfolio-risk" data-section="portfolio-risk">Portfolio &amp; Risk</a>
+      <a class="nav-tab" href="#learning-path"  data-section="learning-path">My Path</a>
     </nav>
 
     <main class="container">
@@ -672,10 +675,33 @@
             </div>
           </article>
 
+          <!-- Fraud & AML -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #0f766e">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#ccfbf1;color:#0f766e">Fraud &amp; AML</span>
+              <h3>Fraud Detection &amp; Anti-Money Laundering</h3>
+            </div>
+            <p class="nbfc-system-role">AI role: catch fraud before disbursement and flag suspicious transactions for AML compliance — without creating 2,000 false declines a day on a 1-lakh application volume.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>Device &amp; Identity Fraud:</strong> Device fingerprinting (TrustDecision, IDfy), OTP velocity rules, SIM swap detection, and Aadhaar + PAN cross-match catch synthetic identities and account takeovers at the application gate — before a single rupee is disbursed.</li>
+              <li><strong>Loan Stacking Detection:</strong> Borrower applies simultaneously at multiple NBFCs using the same documents. Detectable via cross-bureau enquiry velocity and CKYC fingerprint, but the 2–3 day bureau reporting lag is the fraud window — real-time bureau data sharing is the long-term solution.</li>
+              <li><strong>Graph-Based Fraud Ring Detection:</strong> GNN models map shared device IDs, phone numbers, addresses, and bank accounts across applications — identifying organised fraud rings that standard rule-based systems miss entirely.</li>
+              <li><strong>AML &amp; PMLA Monitoring:</strong> Post-disbursement transaction monitoring flags unusual patterns: circular fund flows, structuring (many small transfers below reporting threshold), third-party account disbursements. STR filing within 7 days of suspicion is a mandatory PMLA obligation.</li>
+            </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>Fraud detection rate · False positive rate · Fraud loss as % of disbursement · STR filing SLA (≤7 days)</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>PMLA 2002 (amended): STR filing within 7 days of suspicion; 10-year record retention. RBI KYC Master Direction 2016 (updated 2024): enhanced due diligence for high-risk customers. Fraud loss budget: typically 0.1–0.3% of disbursement — beyond that, P&amp;L is materially impacted.</span>
+            </div>
+          </article>
+
         </div>
 
         <div class="key-concept">
-          <strong>PM Takeaway:</strong> Most NBFC AI PMs are hired into one of these four systems — but the highest-impact decisions require understanding how they connect. An EWS signal from LMS should feed CRM retention before it becomes a Collections problem. A CRM next-best-action recommendation is only safe if the LOS fraud gate has already run. Draw this data flow before you write your first AI feature spec.
+          <strong>PM Takeaway:</strong> Most NBFC AI PMs are hired into one of these five systems — but the highest-impact decisions require understanding how they connect. An EWS signal from LMS should feed CRM retention before it becomes a Collections problem. A CRM next-best-action recommendation is only safe if the LOS fraud gate has already run. A fraud ring detected at LOS should retrospectively flag the same device cluster in CRM. Draw this full data flow before you write your first AI feature spec.
         </div>
       </section>
 
@@ -767,6 +793,27 @@
             <p class="eval-note"><strong>PM action:</strong> Fairness evals require disaggregated test data. A model that appears 90% accurate overall may be 98% accurate for metro English speakers and 78% for Tier 3 Hindi speakers — and that gap is both a business risk (lost TAM) and a future regulatory risk as RBI's algorithmic fairness scrutiny grows.</p>
           </article>
 
+          <!-- MODEL GOVERNANCE EVALS -->
+          <article class="eval-card" style="border-left: 4px solid #0f766e">
+            <div class="eval-card-header">
+              <span class="eval-badge" style="background:#ccfbf1;color:#0f766e">Model Governance</span>
+              <h3>Model risk management &amp; lifecycle oversight</h3>
+            </div>
+            <p>Run on every model deployment and monthly in production. Model governance is not engineering hygiene — it is an RBI inspection requirement for NBFCs using AI in credit decisions.</p>
+            <table class="eval-table">
+              <thead><tr><th>MRM Check</th><th>Eval Signal</th><th>Threshold / Action</th></tr></thead>
+              <tbody>
+                <tr><td>Population Stability</td><td>PSI (Population Stability Index)</td><td>PSI &gt; 0.25 → mandatory re-training</td></tr>
+                <tr><td>Model Performance Drift</td><td>KS statistic change vs. baseline</td><td>KS drop &gt; 0.05 → escalate to model risk committee</td></tr>
+                <tr><td>Characteristic Stability</td><td>CSI per feature</td><td>CSI &gt; 0.10 for top-5 features → investigate</td></tr>
+                <tr><td>Champion-Challenger</td><td>Approval rate &amp; NPA gap (C vs. Ch)</td><td>Challenger must run ≥4 weeks before cutover</td></tr>
+                <tr><td>Model Inventory</td><td>% of models with current validation report</td><td>100% — no undocumented models in production</td></tr>
+                <tr><td>Model Re-validation</td><td>Time since last independent validation</td><td>&lt;6 months for all Tier 1 credit models</td></tr>
+              </tbody>
+            </table>
+            <p class="eval-note"><strong>PM action:</strong> Own the model card for every ML model in your product stack — inputs, outputs, training data vintage, known biases, escalation thresholds. Establish a monthly model governance committee with risk + data science + product in attendance. RBI's supervisory framework for AI/ML (2023) expects formal MRM programs at Upper Layer NBFCs. A single undocumented model discovered in an RBI inspection can trigger a show-cause notice — the audit trail is your protection.</p>
+          </article>
+
         </div>
 
         <div class="eval-cadence">
@@ -796,9 +843,310 @@
         </div>
       </section>
 
-      <!-- ═══════════════════ SECTION 9: LEARNING PATH ═══════════════════ -->
+      <!-- ═══════════════════ SECTION 9: CREDIT INTELLIGENCE ═══════════════════ -->
+      <section class="panel" id="credit-intel">
+        <h2>9) Credit Intelligence &amp; Risk Systems</h2>
+        <p>The credit decision engine is the core intellectual property of any NBFC. It is where data science, regulatory compliance, product intuition, and business economics converge. A PM who can navigate bureau APIs, scorecard design, BRE architecture, and AA-powered cash flow underwriting — while holding the model risk governance framework together — is a rare hire. This section maps the full credit intelligence stack that powers India's leading digital lenders.</p>
+        <ul class="section-concepts">
+          <li>Bureau + alternative data + AA cash flow form a three-layer underwriting stack: bureau scores the credit history, AA scores the income and obligation picture, and alternative data opens the thin-file market</li>
+          <li>BRE (Business Rule Engine) is the policy layer above the scorecard — it applies hard cutoffs, override logic, and risk-based pricing rules that the credit team owns autonomously without engineering sprints</li>
+          <li>Explainable AI is not optional: RBI Fair Practices Code requires plain-language rejection reasons, and XAI translates SHAP feature attributions into customer-safe adverse action codes</li>
+          <li>Model Risk Governance (MRM) is the framework that ensures models are inventoried, independently validated, and monitored for drift — a single undocumented model in an RBI inspection can trigger a show-cause notice</li>
+        </ul>
+        <div class="arch-diagram">
+          <div class="diag-layout">
+            <div class="diagram-wrap">
+              <svg viewBox="0 0 760 250" role="img" aria-label="Credit Intelligence system flow">
+                <defs>
+                  <marker id="arr-ci" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                    <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
+                  </marker>
+                </defs>
+                <!-- Row 1: bureau → scorecard → bre → xai -->
+                <g class="arch-node node-server" data-diagram="credit-intel" data-node="bureau" tabindex="0" role="button" aria-label="Credit Bureau API">
+                  <rect x="20" y="60" width="140" height="44" rx="8"/>
+                  <text class="node-title" x="90" y="78">Credit Bureau API</text>
+                  <text class="node-sub"   x="90" y="93">CIBIL / Experian / CRIF</text>
+                </g>
+                <line x1="160" y1="82" x2="195" y2="82" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-ci)"/>
+                <g class="arch-node node-ai" data-diagram="credit-intel" data-node="scorecard" tabindex="0" role="button" aria-label="Scorecard Engine">
+                  <rect x="195" y="60" width="140" height="44" rx="8"/>
+                  <text class="node-title" x="265" y="78">Scorecard Engine</text>
+                  <text class="node-sub"   x="265" y="93">WoE / LR / GBM</text>
+                </g>
+                <line x1="335" y1="82" x2="370" y2="82" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-ci)"/>
+                <g class="arch-node node-client" data-diagram="credit-intel" data-node="bre" tabindex="0" role="button" aria-label="BRE / Policy Engine">
+                  <rect x="370" y="60" width="140" height="44" rx="8"/>
+                  <text class="node-title" x="440" y="78">BRE / Policy Engine</text>
+                  <text class="node-sub"   x="440" y="93">Rules · Cutoffs · Overrides</text>
+                </g>
+                <line x1="510" y1="82" x2="545" y2="82" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-ci)"/>
+                <g class="arch-node node-cache" data-diagram="credit-intel" data-node="xai" tabindex="0" role="button" aria-label="Explainable AI">
+                  <rect x="545" y="60" width="140" height="44" rx="8"/>
+                  <text class="node-title" x="615" y="78">Explainable AI</text>
+                  <text class="node-sub"   x="615" y="93">SHAP · Adverse Action Codes</text>
+                </g>
+                <!-- Connector lines from row 1 nodes down to row 2 -->
+                <line x1="265" y1="104" x2="265" y2="148" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+                <line x1="440" y1="104" x2="440" y2="148" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+                <!-- Row 2: aa-cashflow · altdata · mrm -->
+                <g class="arch-node node-server" data-diagram="credit-intel" data-node="aa-cashflow" tabindex="0" role="button" aria-label="AA Cash Flow Engine">
+                  <rect x="70" y="148" width="160" height="44" rx="8"/>
+                  <text class="node-title" x="150" y="166">AA Cash Flow Engine</text>
+                  <text class="node-sub"   x="150" y="181">AA 2.0 · FIP · Income Score</text>
+                </g>
+                <g class="arch-node node-database" data-diagram="credit-intel" data-node="altdata" tabindex="0" role="button" aria-label="Alternative Data">
+                  <rect x="295" y="148" width="150" height="44" rx="8"/>
+                  <text class="node-title" x="370" y="166">Alternative Data</text>
+                  <text class="node-sub"   x="370" y="181">Device · GST · Telco</text>
+                </g>
+                <g class="arch-node node-cache" data-diagram="credit-intel" data-node="mrm" tabindex="0" role="button" aria-label="Model Risk Governance">
+                  <rect x="510" y="148" width="165" height="44" rx="8"/>
+                  <text class="node-title" x="592" y="166">Model Risk Governance</text>
+                  <text class="node-sub"   x="592" y="181">PSI · KS Drift · MRM</text>
+                </g>
+              </svg>
+            </div>
+            <div class="arch-inspector" id="inspector-credit-intel">
+              <p class="inspector-placeholder">Click any component to see its PM relevance, fintech analogy, key metrics, and learning resources.</p>
+            </div>
+          </div>
+        </div>
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> The credit stack is a system of systems — bureau provides history, AA provides current cash flow, the BRE applies policy, the scorecard provides a risk score, and XAI translates the decision for the customer. Owning credit intelligence as a PM means understanding all five layers, their interdependencies, and their failure modes — not just the model accuracy number.
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 10: INDIA STACK ═══════════════════ -->
+      <section class="panel" id="india-stack">
+        <h2>10) India Stack for Lending</h2>
+        <p>India's Digital Public Infrastructure (DPI) has fundamentally changed the economics of lending. A VP Product who cannot map OCEN, AA, UPI AutoPay, and eKYC flows — and articulate their regulatory obligations — is unemployable at a tech-forward NBFC in 2026. These are not optional integrations: they are the rails on which digital lending in India runs, mandated, incentivised, or competitively necessary at every stage of the credit lifecycle.</p>
+        <ul class="section-concepts">
+          <li>Aadhaar eKYC + V-KYC replaces branch KYC for the majority of NBFC customers — reducing onboarding time from days to minutes while satisfying RBI's full-KYC requirements</li>
+          <li>DigiLocker (42.7 crore users) and CKYC together eliminate document fraud and re-KYC costs — a CKYC download costs ~₹15 vs ₹150–300 for fresh KYC</li>
+          <li>Account Aggregator 2.0 and OCEN 4.0 are the underwriting and distribution rails for the next decade — cash flow underwriting via AA and embedded lending via OCEN open the thin-file and SME markets</li>
+          <li>UPI AutoPay and NACH are the repayment collection infrastructure — presentation success rate (PSR) is a board-level KPI at every NBFC; same-day R01 re-presentation strategies directly impact NPA rates</li>
+        </ul>
+        <div class="arch-diagram">
+          <div class="diag-layout">
+            <div class="diagram-wrap">
+              <svg viewBox="0 0 760 250" role="img" aria-label="India Stack for lending">
+                <defs>
+                  <marker id="arr-is" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                    <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
+                  </marker>
+                </defs>
+                <!-- Row 1: aadhaar-kyc → digilocker → ckyc → aa2 -->
+                <g class="arch-node node-server" data-diagram="india-stack" data-node="aadhaar-kyc" tabindex="0" role="button" aria-label="Aadhaar eKYC / V-KYC">
+                  <rect x="20" y="60" width="145" height="44" rx="8"/>
+                  <text class="node-title" x="92" y="78">Aadhaar eKYC</text>
+                  <text class="node-sub"   x="92" y="93">eKYC · V-KYC · Liveness</text>
+                </g>
+                <line x1="165" y1="82" x2="198" y2="82" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-is)"/>
+                <g class="arch-node node-database" data-diagram="india-stack" data-node="digilocker" tabindex="0" role="button" aria-label="DigiLocker">
+                  <rect x="198" y="60" width="130" height="44" rx="8"/>
+                  <text class="node-title" x="263" y="78">DigiLocker</text>
+                  <text class="node-sub"   x="263" y="93">PAN · ITR · DL · RC</text>
+                </g>
+                <line x1="328" y1="82" x2="361" y2="82" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-is)"/>
+                <g class="arch-node node-client" data-diagram="india-stack" data-node="ckyc" tabindex="0" role="button" aria-label="CKYC Registry">
+                  <rect x="361" y="60" width="130" height="44" rx="8"/>
+                  <text class="node-title" x="426" y="78">CKYC Registry</text>
+                  <text class="node-sub"   x="426" y="93">CERSAI · Single KYC</text>
+                </g>
+                <line x1="491" y1="82" x2="524" y2="82" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-is)"/>
+                <g class="arch-node node-server" data-diagram="india-stack" data-node="aa2" tabindex="0" role="button" aria-label="Account Aggregator 2.0">
+                  <rect x="524" y="60" width="155" height="44" rx="8"/>
+                  <text class="node-title" x="601" y="78">Account Aggregator 2.0</text>
+                  <text class="node-sub"   x="601" y="93">FIP · FIU · Consent Artifact</text>
+                </g>
+                <!-- Connector lines down -->
+                <line x1="263" y1="104" x2="263" y2="148" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+                <line x1="426" y1="104" x2="426" y2="148" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+                <line x1="601" y1="104" x2="601" y2="148" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+                <!-- Row 2: ocen · upi-autopay · cbdc -->
+                <g class="arch-node node-client" data-diagram="india-stack" data-node="ocen" tabindex="0" role="button" aria-label="OCEN 4.0">
+                  <rect x="60" y="148" width="130" height="44" rx="8"/>
+                  <text class="node-title" x="125" y="166">OCEN 4.0</text>
+                  <text class="node-sub"   x="125" y="181">LSP · Offer API · NBFC</text>
+                </g>
+                <g class="arch-node node-server" data-diagram="india-stack" data-node="upi-autopay" tabindex="0" role="button" aria-label="UPI AutoPay / NACH">
+                  <rect x="295" y="148" width="160" height="44" rx="8"/>
+                  <text class="node-title" x="375" y="166">UPI AutoPay / NACH</text>
+                  <text class="node-sub"   x="375" y="181">PSR · R01 · Mandate</text>
+                </g>
+                <g class="arch-node node-ai" data-diagram="india-stack" data-node="cbdc" tabindex="0" role="button" aria-label="e-Rupee CBDC">
+                  <rect x="560" y="148" width="130" height="44" rx="8"/>
+                  <text class="node-title" x="625" y="166">e-Rupee CBDC</text>
+                  <text class="node-sub"   x="625" y="181">Programmable · Pilot</text>
+                </g>
+              </svg>
+            </div>
+            <div class="arch-inspector" id="inspector-india-stack">
+              <p class="inspector-placeholder">Click any component to see its PM relevance, fintech analogy, key metrics, and learning resources.</p>
+            </div>
+          </div>
+        </div>
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> India Stack is not a set of optional integrations — it is the operating system of Indian digital lending. Aadhaar + DigiLocker + CKYC reduce onboarding cost by 80%. AA transforms underwriting for the 300M+ thin-file borrowers. UPI AutoPay is the EMI collection infrastructure. OCEN is the distribution rail. A PM who cannot speak fluently about all seven components is not ready for a senior NBFC product role.
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 11: PORTFOLIO & RISK ═══════════════════ -->
+      <section class="panel" id="portfolio-risk">
+        <h2>11) Portfolio Health &amp; NBFC Economics</h2>
+        <p>VP Product candidates at NBFCs are expected to understand P&amp;L — not just product metrics. NIM, NPA, CRAR, and ALM are the vocabulary of every NBFC board meeting. A PM who proposes a product feature without understanding its impact on credit cost, capital allocation, or ALM mismatch is seen as a risk, not an asset. This section maps the financial and risk management frameworks that shape every NBFC product decision.</p>
+
+        <div class="nbfc-systems-grid">
+
+          <!-- Portfolio Health Metrics -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #1d9a6c">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#dff4ea;color:#1d9a6c">Portfolio Health</span>
+              <h3>Portfolio Health Metrics</h3>
+            </div>
+            <p class="nbfc-system-role">PM role: own the portfolio quality cockpit — the weekly view that credit, risk, and product review together.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>DPD Buckets:</strong> Days Past Due distribution — DPD 0 (current), DPD 1–30 (early delinquency), DPD 31–90 (sub-standard), DPD 90+ (NPA). Each bucket has a different cost to cure and collection strategy.</li>
+              <li><strong>NPA Stage Classification:</strong> Under IndAS 109 — Stage 1 (current, 12-month ECL), Stage 2 (credit deteriorated, lifetime ECL), Stage 3 (defaulted, lifetime ECL). Stage migration rates are a leading indicator of future P&amp;L impact.</li>
+              <li><strong>Vintage Curves:</strong> Plot NPA rate by loan origination month at 3, 6, 12, 24 months — reveals whether recent vintages are worse than older ones, signalling underwriting deterioration before it shows in aggregate NPA.</li>
+              <li><strong>Portfolio at Risk (PAR):</strong> PAR 30 = (outstanding balance of loans DPD 30+) / total AUM. Industry benchmark varies by product — personal loan PAR 30 target typically &lt; 3%, MSME &lt; 5%.</li>
+            </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>PAR 30 · Stage 2 migration rate · Vintage NPA at 12M · Write-off rate</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">AI Opportunity</span>
+              <span>EWS models predict Stage 1→2 migration 30–60 days before the DPD clock starts. Vintage analysis automation catches underwriting drift in real time.</span>
+            </div>
+          </article>
+
+          <!-- NBFC Unit Economics -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #2563eb">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#dbeafe;color:#2563eb">Unit Economics</span>
+              <h3>NBFC Unit Economics</h3>
+            </div>
+            <p class="nbfc-system-role">PM role: understand how every product decision shifts the P&amp;L — ticket size, tenure, segment, and AI automation all move these levers.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>Net Interest Margin (NIM):</strong> Yield on loans minus cost of borrowing funds. Typical NBFC: yield 18–24%, cost of funds 10–13%, gross NIM 8–12%. AI-powered underwriting reduces credit cost; AI origination automation reduces opex ratio.</li>
+              <li><strong>Credit Cost:</strong> Provisioning expense as % of AUM, driven by NPA rate and recovery. Target &lt; 3–5% for personal lending, &lt; 2% for secured. AI EWS reduces credit cost by catching deterioration early.</li>
+              <li><strong>ROA &amp; ROE:</strong> Return on Assets (target 2–4%) and Return on Equity (target 12–18%) are the board-level profitability metrics. A PM's product decision is ultimately measured by its impact on ROA.</li>
+              <li><strong>Cost-to-Income:</strong> Opex as % of total income. Best-in-class digital NBFCs achieve &lt; 40% via automation. AI reduces cost-to-income through straight-through processing in LOS (target: 70%+ automation rate).</li>
+            </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>NIM · Credit cost · Cost-to-income ratio · ROA</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>RBI Scale-Based Regulation (SBR) Feb 2026 ties capital and governance requirements to NBFC tier — Middle/Upper Layer NBFCs face near-bank P&amp;L scrutiny.</span>
+            </div>
+          </article>
+
+          <!-- ALM & Liquidity -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #7c3aed">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#ede9fe;color:#7c3aed">ALM</span>
+              <h3>Asset Liability Management (ALM)</h3>
+            </div>
+            <p class="nbfc-system-role">PM role: do not create product features that worsen ALM mismatch without risk committee sign-off.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>The Mismatch Problem:</strong> NBFCs borrow short (6–12M CPs, NCDs, bank credit lines) but lend medium (2–5 year personal loans). This duration mismatch is a structural liquidity risk — what caused the IL&amp;FS crisis in 2018.</li>
+              <li><strong>ALM Buckets:</strong> RBI requires quarterly ALM reports showing cash inflows and outflows by time bucket (0–1M, 1–3M, 3–6M, 6M–1Y, 1–3Y, 3–5Y, 5Y+). Negative bucket gaps signal rollover risk.</li>
+              <li><strong>LCR &amp; NSFR:</strong> Liquidity Coverage Ratio and Net Stable Funding Ratio — mandated for Upper Layer NBFCs under SBR Feb 2026. Middle/Upper Layer NBFCs must maintain LCR ≥ 100%.</li>
+              <li><strong>PM Implication:</strong> Features like moratorium, bullet repayment, or prepayment options directly impact ALM buckets. Every such feature requires a treasury sign-off before product spec finalisation.</li>
+            </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>ALM gap by bucket · LCR (if applicable) · Borrowing mix diversity</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>RBI SBR Framework Feb 2026: Upper Layer NBFCs must file quarterly ALM returns. Negative structural gap beyond regulatory threshold triggers supervisory action.</span>
+            </div>
+          </article>
+
+          <!-- Capital Adequacy & SBR -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #ea580c">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#ffedd5;color:#ea580c">Capital</span>
+              <h3>Capital Adequacy &amp; SBR</h3>
+            </div>
+            <p class="nbfc-system-role">PM role: know which SBR tier your NBFC is in — it determines which products you can build and what governance your product decisions require.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>CRAR:</strong> Capital to Risk-Weighted Assets Ratio — NBFCs must maintain minimum 15% (Tier 1: 10%). Each loan product has a risk weight. High risk-weight loans (unsecured, subprime) consume more capital per rupee disbursed.</li>
+              <li><strong>SBR Tiers (RBI Feb 2026):</strong> Base Layer (most NBFCs, lighter touch) → Middle Layer (systemically important, closer oversight) → Upper Layer (~50 largest NBFCs, near-bank regulation) → Top Layer (systemic concern, conversion to bank pathway).</li>
+              <li><strong>PM Implications:</strong> Upper Layer NBFCs must have board-level risk committees, independent risk functions, and formal model risk governance — all of which PM must design products around.</li>
+              <li><strong>Co-Lending Impact:</strong> Co-lending with banks (RBI Co-Lending Directions Jan 2026) allows NBFCs to originate PSL loans and transfer 80% to bank — freeing up NBFC capital while meeting PSL obligations.</li>
+            </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>CRAR · Tier 1 capital ratio · Risk-weighted asset growth</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>RBI SBR Framework Feb 2026: know your tier. RBI Co-Lending Directions Jan 2026: FLDG/DLG cap at 5% of portfolio covered.</span>
+            </div>
+          </article>
+
+          <!-- Collections Funnel -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #b45309">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#fef3c7;color:#b45309">Collections</span>
+              <h3>Collections Funnel &amp; Strategy</h3>
+            </div>
+            <p class="nbfc-system-role">PM role: design collections as a data and UX problem — AI improves recovery while keeping the NBFC compliant with RBI fair practice requirements.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>Collections Funnel:</strong> Pre-due (D-5 to D-1) → Soft follow-up (D+1 to D+30) → Field collection (DPD 30–90) → Legal/SARFAESI (DPD 90+) → One-Time Settlement (OTS) → Write-off. Each stage has different cost, recovery probability, and RBI compliance requirements.</li>
+              <li><strong>AI in Collections:</strong> Settlement propensity model (which NPA accounts will accept OTS and at what discount), right-party contact prediction (best time and channel per customer), and next-best-action routing (field vs digital vs legal vs OTS).</li>
+              <li><strong>SARFAESI &amp; DRT:</strong> For secured loans, SARFAESI Act enables asset repossession without court order (threshold: ₹1 lakh outstanding, NPA classification). Debt Recovery Tribunal (DRT) for larger defaults. These processes take 12–36 months — NPA prevention is far cheaper.</li>
+              <li><strong>OTS Policy:</strong> One-Time Settlement is a credit committee decision — AI estimates the settlement amount the customer is likely to accept and what the NBFC's recovery NPV is, enabling structured OTS without per-case credit committee approval for standard buckets.</li>
+            </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>Resolution rate by DPD bucket · Self-cure rate (1–30 DPD) · NPA recovery rate · OTS acceptance rate</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>RBI Guidelines on Fair Practices Code: AI communications cannot threaten, must respect DND hours (8 AM–7 PM only), and must include GRO contact in every message. All AI collection scripts require compliance sign-off.</span>
+            </div>
+          </article>
+
+          <!-- Fraud & AML -->
+          <article class="nbfc-system-card" style="border-top: 3px solid #0f766e">
+            <div class="nbfc-system-header">
+              <span class="nbfc-system-badge" style="background:#ccfbf1;color:#0f766e">Fraud &amp; AML</span>
+              <h3>Fraud Detection &amp; AML</h3>
+            </div>
+            <p class="nbfc-system-role">PM role: balance fraud prevention with customer experience — a 2% false positive rate on 1 lakh daily applications = 2,000 legitimate customers wrongly declined.</p>
+            <ul class="nbfc-system-usecases">
+              <li><strong>Fraud Detection Stack:</strong> Device fingerprinting (TrustDecision, IDfy), velocity rules (same PAN on multiple devices), synthetic identity detection (Aadhaar + PAN mismatch + bureau profile inconsistency), CKYC deduplication, and graph-based fraud ring detection.</li>
+              <li><strong>Loan Stacking:</strong> A borrower applying simultaneously at multiple NBFCs using the same documents — detectable only via cross-bureau enquiry velocity and CKYC fingerprint matching. A 2–3 day bureau reporting lag is the fraud window.</li>
+              <li><strong>AML / PMLA:</strong> Prevention of Money Laundering Act requires NBFCs to file STRs (Suspicious Transaction Reports) within 7 days of suspicion. AI flags unusual disbursement patterns, third-party account transfers, and structuring behaviour.</li>
+              <li><strong>Fraud Loss Budget:</strong> Typically 0.1–0.3% of disbursement. AI fraud models are measured on: fraud detection rate (sensitivity), false positive rate (specificity), and cost per fraud case caught. An ensemble model with human review for high-risk cases typically achieves the best P&amp;L outcome.</li>
+            </ul>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">PM Metric</span>
+              <span>Fraud detection rate · False positive rate · Fraud loss as % of disbursement · STR filing rate</span>
+            </div>
+            <div class="nbfc-system-meta">
+              <span class="nbfc-meta-label">RBI / Compliance</span>
+              <span>PMLA 2002 (amended): STR filing within 7 days of suspicion. RBI KYC Master Direction 2016 (updated 2024): enhanced due diligence for high-risk customers. DPDP Act 2023: consent required for third-party data sharing in fraud checks.</span>
+            </div>
+          </article>
+
+        </div>
+
+        <div class="key-concept">
+          <strong>PM Takeaway:</strong> Portfolio health, unit economics, ALM, capital, collections, and fraud are not "risk team problems" — they are product constraints. Every product decision a PM makes (loan tenure, ticket size, target segment, collection channel) has a direct knock-on effect on at least three of these six dimensions. The PMs who get promoted to VP Product at NBFCs are the ones who can draw the causal chain from "we launch UPI AutoPay by default" to "PSR improves by 3pp" to "DPD 1–30 reduces by 1pp" to "credit cost reduces by ₹8 crore annually."
+        </div>
+      </section>
+
+      <!-- ═══════════════════ SECTION 12: LEARNING PATH ═══════════════════ -->
       <section class="panel" id="learning-path">
-        <h2>9) Your Personalised AI PM Learning Path</h2>
+        <h2>12) Your Personalised AI PM Learning Path</h2>
         <p>Tell us about yourself and Claude Opus will generate a highly specific 12-week learning plan tailored to your role, NBFC domain, and goals — grounded in RBI regulations, NPCI infrastructure, and real patterns from India's digital lending ecosystem. Enter your Anthropic API key below — it stays in your browser and is never sent anywhere except directly to Anthropic.</p>
         <form id="lp-form">
           <div class="lp-form-grid">
