@@ -104,6 +104,24 @@
         <div class="key-concept">
           <strong>PM Takeaway:</strong> When your NBFC AI feature is slow on Indian networks, the bottleneck is almost always one of these four layers. Your job is to know which one to ask engineering about — and to have a defined SLO for each hop, including NPCI rail latency and CBS read time, before launch.
         </div>
+
+        <!-- Block 1A: Caching strategy decision framework -->
+        <div class="decision-framework">
+          <table class="eval-table">
+            <thead><tr><th>Strategy</th><th>Use when</th><th>Avoid when</th><th>NBFC-specific control</th></tr></thead>
+            <tbody>
+              <tr><td><strong>CDN edge cache</strong></td><td>Static assets, public content, marketing pages, product comparison data</td><td>Personalised content, loan-specific data, any response containing PII or account information</td><td>Never cache pages containing MITC terms, loan balances, or customer-specific rates. CDN cache-control headers must be audited quarterly. Target: &lt;50ms for cached assets</td></tr>
+              <tr><td><strong>Application-level cache (Redis)</strong></td><td>Session data, CKYC lookup results, bureau score (with TTL ≤24h), BRE rule sets, PMLA blocklists</td><td>Real-time account balances, UPI transaction status, AA data (consent-scoped, must be fetched fresh per use)</td><td>CKYC cache TTL: 24h (regulatory data can change). Bureau score cache: 24h (re-pull on new application). PMLA blocklist: 1h (real-time updates from FIU). Redis must be encrypted at rest per DPDP 2025</td></tr>
+              <tr><td><strong>CBS read replica</strong></td><td>Dashboard queries, portfolio analytics, historical transaction lookups, reporting</td><td>Real-time balance checks, disbursement confirmations, UPI mandate status — must hit primary CBS</td><td>Read replica lag must be monitored (&lt;5s acceptable for dashboards, unacceptable for transaction confirmation). Stale CBS data shown to a customer is a compliance risk if it affects financial decisions</td></tr>
+              <tr><td><strong>No cache (pass-through)</strong></td><td>UPI transaction initiation, loan disbursement, NPCI mandate registration, AA consent creation — any state-changing financial operation</td><td>—</td><td>Financial state-changing operations must never be cached or retried without idempotency keys. This is non-negotiable. Latency must be managed via infrastructure (connection pooling, regional deployment), not caching</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 1B: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> The latency budget for an NBFC AI feature begins at the web request layer. Define SLOs per hop: CDN &lt;50ms, application server &lt;150ms, CBS read &lt;200ms, Redis &lt;5ms, NPCI &lt;300ms. The PM who owns these numbers before the PRD is written — not after the first performance incident — is the one who ships on time. Every caching decision is simultaneously a performance decision and a compliance decision: cache the wrong thing (MITC terms, live balances, AA data) and you have a regulatory incident. Cache the right thing (CKYC lookups, BRE rules, static content) and you have a fast, compliant product.
+        </div>
       </section>
 
       <!-- ═══════════════════ SECTION 2: APIS ═══════════════════ -->
@@ -182,6 +200,35 @@
         <div class="key-concept">
           <strong>PM Takeaway:</strong> Every AI action that touches a customer's NBFC loan account or NPCI transaction must pass through this stack. Map your AI feature's service dependencies — AA consent layer, CKYC registry, CBS, NPCI — before writing the spec, or you will discover RBI compliance blockers in sprint 3.
         </div>
+
+        <!-- Block 2A: Gateway pattern comparison table -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>Pattern</th><th>Strengths</th><th>Failure modes</th><th>Latency overhead</th><th>Best fit</th></tr></thead>
+            <tbody>
+              <tr><td>Single API gateway (Kong, AWS API GW)</td><td>Centralised auth, rate limiting, logging. Simple to operate. Single enforcement point for RBI compliance middleware</td><td>Single point of failure — gateway outage = total system outage. All traffic through one bottleneck; scaling requires careful capacity planning</td><td>5–15ms per request</td><td>Small-to-mid NBFCs with &lt;50 microservices. The default starting architecture — graduate to BFF when mobile and web needs diverge</td></tr>
+              <tr><td>BFF (Backend for Frontend)</td><td>Separate gateway per client (mobile app, web, partner API). Each BFF optimises payload and auth for its channel. RBI audit scope is narrower per BFF</td><td>Shared business logic drifts between BFFs. Compliance middleware must be replicated across all BFFs — a single missed update creates a regulatory gap</td><td>5–15ms per BFF + 2–5ms for inter-service calls</td><td>NBFCs with distinct mobile app, web dashboard, and partner API channels. The BFF pattern is the emerging standard for mid-to-large digital lenders</td></tr>
+              <tr><td>Service mesh (Istio, Linkerd)</td><td>Sidecar proxies handle auth, TLS, observability at the service level. Zero-trust networking. Fine-grained traffic control</td><td>Operational complexity is high — requires dedicated platform team. Sidecar latency adds 1–3ms per hop. Debugging failures across mesh is non-trivial</td><td>1–3ms per hop (sidecar overhead)</td><td>Large NBFCs with 100+ microservices and a dedicated platform engineering team. Overkill for most — only justified when zero-trust and per-service observability are regulatory requirements</td></tr>
+              <tr><td>Event-driven (Kafka + API gateway)</td><td>Async processing for non-real-time workflows (batch underwriting, nightly reconciliation). Decouples producers from consumers. Natural audit trail via event log</td><td>Not suitable for synchronous user-facing flows (NPCI requires real-time response). Event ordering guarantees are complex. Consumer lag = stale data for downstream services</td><td>50–500ms (async; not suitable for real-time)</td><td>Batch processing: nightly bureau refresh, AA data aggregation, collections strategy computation, regulatory reporting. Never for real-time lending or payment flows</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 2B: Microservice anti-patterns in NBFC -->
+        <div class="failure-modes">
+          <strong>Microservice anti-patterns in NBFC:</strong>
+          <ul>
+            <li><strong>Distributed monolith:</strong> 20 microservices that must all be deployed together because they share a database or have synchronous circular dependencies. You have the operational complexity of microservices with none of the benefits. Common in NBFCs that "migrated to microservices" without redesigning domain boundaries</li>
+            <li><strong>Chatty gateway:</strong> a single user request triggers 8+ inter-service calls (auth → CKYC → bureau → AA → BRE → scorecard → CBS → audit). Each hop adds 5–15ms; total overhead exceeds 100ms before any business logic runs. Solution: aggregate calls where possible, parallelize independent fetches</li>
+            <li><strong>Consent scope creep (DPDP 2025):</strong> the AA consent artifact authorises access to bank statements for underwriting, but a downstream microservice uses the same data for marketing segmentation. Under DPDP 2025 Phase 1 (effective immediately), purpose limitation is enforceable — the gateway must enforce consent scope per downstream service, not just at the entry point</li>
+            <li><strong>Timeout cascade (NPCI 30s):</strong> Service A calls Service B (timeout: 10s), which calls Service C (timeout: 10s), which calls NPCI (timeout: 10s). If Service C is slow, Service B waits 10s, then Service A waits 10s for B — total wall time: 20s, leaving only 10s for NPCI response within the 30s session limit. Solution: end-to-end deadline propagation, not per-service timeouts</li>
+          </ul>
+        </div>
+
+        <!-- Block 2C: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> The API gateway is where RBI compliance is either enforced or leaks. DLG 2025's CIMS portal reporting requirement means every loan origination event must be captured, formatted, and transmitted from the gateway layer — not reconstructed from downstream service logs after the fact. The PM must ensure that compliance middleware (PMLA screening, consent scope enforcement, audit logging, CIMS reporting) runs at the gateway level as a blocking pre-condition, not as an async afterthought. The gateway is not plumbing — it is the regulatory control plane of the NBFC.
+        </div>
       </section>
 
       <!-- ═══════════════════ SECTION 3: LLM MECHANICS ═══════════════════ -->
@@ -259,6 +306,37 @@
         </div>
         <div class="key-concept">
           <strong>PM Takeaway:</strong> Context window × token price = your AI cost ceiling for every NBFC credit or UPI servicing query. Hindi/regional-language support multiplies token cost 2–4x. Every design decision — how much RBI policy text you retrieve, whether you support vernacular queries, how long your system prompt is — is simultaneously a cost and regulatory decision. The PM who owns the token budget owns the P&amp;L.
+        </div>
+
+        <!-- Block 3A: Model selection decision framework -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>Model tier</th><th>Strengths</th><th>Failure modes</th><th>Cost per 1M tokens (approx.)</th><th>Best fit NBFC use case</th></tr></thead>
+            <tbody>
+              <tr><td>Frontier reasoning (Claude Opus, GPT-4o)</td><td>Best accuracy on complex regulatory reasoning, multi-step analysis, nuanced policy interpretation. Lowest hallucination rate on RBI Master Directions</td><td>$50K+/month at scale for high-volume use cases; 2–8s latency per query; overkill for simple classification or FAQ</td><td>$5–15 input / $15–60 output</td><td>Compliance advisory, complex credit explanations, board-level reporting drafts, regulatory gap analysis. Low-volume, high-stakes tasks where accuracy justifies cost</td></tr>
+              <tr><td>Mid-tier balanced (Claude Sonnet, GPT-4o-mini)</td><td>Best cost-accuracy tradeoff; adequate for most NBFC tasks; 0.5–2s latency; strong tool-use and structured output capabilities</td><td>Degrades on multi-hop regulatory reasoning; Hindi/Hinglish performance varies by model; may hallucinate on obscure RBI circulars</td><td>$1–3 input / $5–15 output</td><td>The workhorse — servicing copilot, AA data summarisation, collections strategy drafting, internal knowledge Q&A. 70–80% of NBFC AI traffic should use this tier</td></tr>
+              <tr><td>Fast/cheap (Claude Haiku, GPT-4o-mini)</td><td>Lowest cost; &lt;500ms latency; adequate for simple classification and extraction; high throughput</td><td>Unreliable on regulatory reasoning; cannot be trusted for compliance-sensitive outputs; limited context window on some models</td><td>$0.25–1 input / $1–5 output</td><td>Intent classification, sentiment analysis, simple entity extraction, routing decisions. Pre-processing layer, never the final answer for compliance tasks</td></tr>
+              <tr><td>Embedding models</td><td>Encode text into vectors for similarity search; critical for RAG retrieval quality; one-time cost per document</td><td>English-trained embeddings degrade on Hindi/Hinglish queries (30–50% precision drop); regulatory language is a domain shift from training data</td><td>$0.02–0.13 per 1M tokens</td><td>RAG vector store indexing, semantic search, document dedup detection. Evaluate multilingual models (multilingual-e5, Cohere multilingual) for Indian language support</td></tr>
+              <tr><td>Fine-tuned domain model</td><td>Specialised on NBFC vocabulary, RBI regulatory language, and Indian financial terminology. Higher accuracy on domain-specific tasks at lower cost than frontier</td><td>Requires 10K+ high-quality training examples; fine-tuning on stale data creates confident wrong answers; ongoing maintenance cost as regulations change</td><td>Training: $500–5K per run; Inference: similar to base model tier</td><td>NBFC-specific entity extraction (loan product classification, adverse action code generation), internal jargon resolution. Only viable for NBFCs with dedicated ML teams</td></tr>
+              <tr><td>Open-source on-premise (Llama, Mistral)</td><td>Full data sovereignty — no customer data leaves NBFC infrastructure; DPDP 2025 compliance simplified; no per-token API cost</td><td>Requires GPU infrastructure (₹15–40L/year for production); 3–6 month setup time; accuracy gap vs frontier models on regulatory reasoning; maintenance burden on internal team</td><td>Infrastructure: ₹15–40L/year; Per-token: ₹0</td><td>Only justified when DPDP 2025 data sovereignty requirements prohibit API calls (sensitive PII processing, cross-border data restrictions) or when volume exceeds 50M+ tokens/month making API costs untenable</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 3B: Model selection failure modes -->
+        <div class="failure-modes">
+          <strong>Model selection failure modes that matter:</strong>
+          <ul>
+            <li><strong>Frontier model default:</strong> using Claude Opus or GPT-4o for intent classification because "it works" — at $50K+/month when a Haiku-class model achieves 98% accuracy on the same task for $2K/month. Model tier selection is a product decision with P&L impact, not an engineering default</li>
+            <li><strong>Hindi token cost surprise:</strong> Hindi text tokenizes 2–4× less efficiently than English. A servicing copilot processing 10K Hindi queries/day costs $12K+/month more than the English estimate. The PM must mandate token cost estimation on actual production query distribution, not English test data</li>
+            <li><strong>Context window as crutch:</strong> stuffing 50K tokens of RBI policy into the context window instead of building proper RAG retrieval. At $3.60 per query on a frontier model with 50K input tokens, this is architecturally lazy and financially ruinous at scale</li>
+            <li><strong>Regulatory reasoning on small models:</strong> using a fast/cheap model for compliance-sensitive tasks because "we'll catch errors in review." A 4% hallucination rate on 1,000 daily compliance queries = 40 incorrect regulatory responses per day, any one of which could become an RBI observation</li>
+          </ul>
+        </div>
+
+        <!-- Block 3C: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> Model selection is a product decision, not an engineering decision. The PM must own the model-tier map — which model serves which use case at which cost — and update it quarterly as pricing and capabilities shift. RBI FREE-AI requires board-level justification for AI model choices in regulated entities. A PM who can present the model-tier table at a board meeting — with cost per query, accuracy on regulatory benchmarks, and data sovereignty implications per tier — is speaking the language that both the CTO and the compliance officer understand. The era of "one model for everything" is over; the era of "right model for the right task at the right cost" has begun.
         </div>
       </section>
 
@@ -352,6 +430,61 @@
         <div class="key-concept">
           <strong>PM Takeaway:</strong> In NBFC AI, RAG quality equals RBI compliance quality. Your cited-answer coverage rate, RBI circular freshness SLA, and retrieval precision on NBFC policy queries are product KPIs — not just engineering metrics. Own the data pipeline that feeds RAG, or you will discover a stale RBI circular in a customer complaint reviewed by the Grievance Redressal Officer.
         </div>
+
+        <!-- Block 4A: Chunking strategy comparison table -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>Strategy</th><th>Strengths</th><th>Failure modes</th><th>Latency impact</th><th>Best fit for NBFC docs</th></tr></thead>
+            <tbody>
+              <tr><td>Fixed-size (500–1000 tokens)</td><td>Simple, predictable chunk count, easy to debug. Works for homogeneous text</td><td>Splits mid-sentence, mid-clause, mid-regulation — a single RBI directive split across two chunks loses its meaning. No semantic awareness</td><td>Lowest — no NLP processing at chunk time</td><td>Only for bulk text where boundary precision doesn't matter (e.g., news corpus, blog content). Never for regulatory documents</td></tr>
+              <tr><td>Recursive paragraph splitting</td><td>Respects paragraph boundaries. Better than fixed-size for structured text. Widely available in frameworks</td><td>Indian regulatory documents have paragraphs spanning 500+ words with nested sub-clauses. A single RBI Master Direction paragraph may contain 3 distinct obligations — splitting by paragraph keeps them together but retrieval returns too much irrelevant content</td><td>Low — paragraph detection is fast</td><td>Acceptable for FAQs, customer-facing content, and short-form policy summaries. Not sufficient for Master Directions or circulars</td></tr>
+              <tr><td>Semantic chunking</td><td>Embeddings-based boundary detection. Chunks align with topic shifts. Better retrieval precision on conceptual queries</td><td>Embedding model may not understand RBI regulatory language — topic boundaries in legal text differ from conversational text. Hindi/Hinglish content degrades boundary detection significantly</td><td>Medium — requires embedding computation at chunk time (~100ms per document)</td><td>Good for RBI FAQ and customer communication templates where topics shift clearly. Requires eval to verify boundary quality on actual NBFC corpus</td></tr>
+              <tr><td>Document-structure-aware</td><td>Uses headings, section numbers, clause hierarchies (Chapter → Section → Sub-section → Clause). Preserves regulatory document structure</td><td>Requires parser per document type — RBI circulars, Master Directions, and SEBI orders all have different structures. PDF extraction errors propagate into chunk boundaries</td><td>Medium-high — requires document parsing pipeline (~500ms–2s per document depending on format)</td><td>The correct choice for RBI Master Directions, circulars, and NBFC policy documents. Worth the upfront parsing investment — retrieval quality improvement is 20–40% vs paragraph splitting on regulatory queries</td></tr>
+              <tr><td>Parent-child (hierarchical)</td><td>Small child chunks for precise retrieval; parent chunks for context. Retrieves child, returns parent to the LLM for full context</td><td>Parent chunk may be too large (>2000 tokens), diluting the LLM's attention. Child chunk may be too small to retrieve correctly. Requires tuning the parent/child ratio per document type</td><td>Medium — two-level index adds ~50ms to retrieval</td><td>Best for MITC generation and credit policy Q&A — retrieve the specific clause (child) but provide the full section context (parent) to the LLM for accurate generation</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 4B: RAG failure mode taxonomy -->
+        <div class="failure-modes">
+          <strong>RAG failure modes mapped to pipeline stages:</strong>
+          <ul>
+            <li><strong>Ingestion rot:</strong> the RBI repeals DLG 2022 on May 8, 2025 and replaces it with DLG 2025 — but the ingestion pipeline still has the old circular indexed. The RAG system confidently cites repealed regulation. 60% of production RAG deployments now include day-one ingestion freshness monitoring because this is the root cause of most compliance hallucinations</li>
+            <li><strong>Embedding mismatch (Hindi/Hinglish):</strong> the embedding model was trained on English text but 60% of customer queries arrive in Hindi or Hinglish via WhatsApp. Retrieval precision drops 30–50% on code-switched queries. Multilingual embedding models (e.g., multilingual-e5) partially address this but require eval on actual NBFC query distribution</li>
+            <li><strong>Retrieval dilution:</strong> the query "what is the DLG cap?" retrieves 5 chunks, 3 of which are from the repealed 2022 guidelines and 2 from the 2025 replacement. The LLM averages the conflicting information instead of prioritising the newer source. Metadata filtering (by date, by circular number) is essential, not optional</li>
+            <li><strong>Reranker false confidence:</strong> the reranker scores a semantically similar but factually outdated chunk higher than the correct chunk. Rerankers optimise for relevance, not recency or correctness. Post-retrieval date filtering must supplement reranker scores</li>
+            <li><strong>Prompt assembly overflow:</strong> 5 retrieved chunks at 800 tokens each = 4,000 tokens of context. Add system prompt (500), user query (100), and MITC template (300) = 4,900 tokens input. On a 4K context model, the last chunk gets truncated — which may be the most relevant one. Context budget management is a PM responsibility</li>
+            <li><strong>Citation hallucination:</strong> the LLM generates a response and attributes it to "RBI Circular dated 15.03.2025" — a circular that doesn't exist. Citation verification against the actual retrieved chunks must be an automated eval, not a manual spot-check. RBI FREE-AI's explainability pillar makes verifiable citations the strongest form of AI transparency for regulated entities</li>
+          </ul>
+        </div>
+
+        <!-- Block 4C: Where RAG works / where RAG doesn't for NBFC -->
+        <div class="where-works">
+          <div class="where-yes">
+            <strong>Where RAG works for NBFC</strong>
+            <ul>
+              <li><strong>RBI policy Q&A:</strong> well-defined corpus, factual answers, citation-verifiable. The canonical RAG use case for Indian financial services</li>
+              <li><strong>MITC generation:</strong> retrieve the correct product-specific MITC template, populate with borrower-specific terms. High-value, high-compliance, and RAG is the right architecture</li>
+              <li><strong>Servicing copilot:</strong> customer asks about prepayment charges — RAG retrieves the specific loan product terms and generates a customer-safe response. Bounded scope, verifiable output</li>
+              <li><strong>Compliance audit preparation:</strong> retrieve all RBI circulars applicable to a specific NBFC product category. Human reviews the output — RAG accelerates, doesn't replace</li>
+              <li><strong>Internal knowledge base:</strong> credit analysts querying policy documents, collections teams looking up restructuring guidelines. Low-stakes, high-volume, clear ROI</li>
+            </ul>
+          </div>
+          <div class="where-no">
+            <strong>Where RAG doesn't work for NBFC</strong>
+            <ul>
+              <li><strong>Multi-hop regulatory reasoning:</strong> "does this MSME borrower qualify for the CGTMSE guarantee given their GST filing history and the latest RBI circular on MSME classification?" — requires 3+ reasoning steps across multiple documents. RAG retrieves documents, it doesn't reason across them</li>
+              <li><strong>Real-time credit decisioning:</strong> the credit decision must complete in &lt;200ms. RAG adds 300–800ms of retrieval latency. Use pre-computed BRE rules for real-time decisions, RAG for explanation generation after the fact</li>
+              <li><strong>Numerical analysis:</strong> "what is the average NPA rate across all NBFCs with AUM >₹5,000 crore?" — RAG retrieves text, not structured data. Use SQL + analytics, not RAG</li>
+              <li><strong>Adversarial regulatory queries:</strong> a user deliberately asks misleading questions to extract incorrect regulatory guidance. RAG's retrieval is indifferent to adversarial intent — the safety layer must sit outside RAG, not inside it</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Block 4D: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> RAG is a pipeline of independently-failing stages — ingestion, embedding, retrieval, reranking, prompt assembly, generation, and citation. Each stage can fail silently, and failures compound. The PM's job is not to "implement RAG" but to own the freshness SLA for ingestion (≤24h after RBI circular publication), the retrieval precision target (>0.85 on golden regulatory queries), and the citation verification rate (100% for customer-facing outputs). RBI FREE-AI's explainability pillar makes RAG citation the strongest available form of AI transparency for regulated entities — but only if the citations are verified, not hallucinated. Own the ingestion pipeline, or discover your compliance gaps in a GRO complaint.
+        </div>
       </section>
 
       <!-- ═══════════════════ SECTION 5: AGENTS ═══════════════════ -->
@@ -442,6 +575,50 @@
         </div>
         <div class="key-concept">
           <strong>PM Takeaway:</strong> Agent reliability degrades with every step — and NPCI session timeouts are unforgiving. Define your maximum autonomous action boundary before engineering starts. In a UPI payments or NBFC credit agent, the question is not "can the agent do this?" — it is "should it, without a human checkpoint, given RBI Digital Lending Guidelines?" Write this boundary into the acceptance criteria.
+        </div>
+
+        <!-- Block 5A: Agent pattern comparison table -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>Pattern</th><th>Strengths</th><th>Failure modes</th><th>Reliability / latency</th><th>Best fit NBFC use case</th></tr></thead>
+            <tbody>
+              <tr><td>Single ReAct agent</td><td>Simple to build and debug. One LLM, one tool loop. Adequate for 3–4 step tasks</td><td>Compound reliability collapse — 6 steps at 85% each = 37% success (MAST study: 41–86.7% failure rates across frameworks). No recovery if one step fails</td><td>~85% per step; 3–8s for 4-step task</td><td>FAQ copilot, simple AA data lookup + response. Low-stakes, few-step tasks where failure = retry, not compliance violation</td></tr>
+              <tr><td>Deterministic workflow + agent nodes</td><td>Code controls the flow; agent handles only the ambiguous steps (classification, generation). Failure is isolated to agent nodes</td><td>Agent node timeout blocks the entire workflow. Requires pre-defining the workflow graph — cannot handle truly novel task structures</td><td>~95% (workflow) × ~85% (agent node) = ~81% per agent node; total latency predictable</td><td>Loan origination pipeline — deterministic steps (bureau pull, BRE, CBS write) with agent nodes for document classification, borrower Q&A. The emerging standard for NBFC AI</td></tr>
+              <tr><td>Supervisor + specialist agents</td><td>Supervisor delegates to domain-specific agents (collections, underwriting, servicing). Each specialist is smaller and more focused</td><td>Coordination breakdown — MAST study: 36.9% of multi-agent failures are coordination failures. Supervisor hallucinates delegation targets. Error amplification 17.2× vs single agent</td><td>Depends on specialist count; each handoff adds 1–3s. End-to-end: 10–30s typical</td><td>Only justified for complex cross-domain tasks (e.g., restructuring a loan that involves collections, credit, legal, and customer comms). Most NBFCs don't need this</td></tr>
+              <tr><td>Parallel fan-out</td><td>Simultaneous tool calls (AA + bureau + GST in parallel). Reduces latency for independent data fetches</td><td>Partial failure handling is complex — what if AA succeeds but bureau times out? PM must define fallback policy per combination. NPCI 30s timeout is the hard ceiling for all parallel branches</td><td>Latency = max(branch latencies), not sum. Reliability = product of branch reliabilities</td><td>Application data enrichment at submission — parallel fetch of bureau, AA, GST, DigiLocker. Pure data collection, no decision logic</td></tr>
+              <tr><td>Do not use agents — use BRE + rules</td><td>Deterministic, auditable, fast (&lt;50ms), no hallucination risk. The entire Indian credit industry ran on BRE for 20 years</td><td>Cannot handle ambiguity or natural language. Rule maintenance becomes exponential at 500+ rules. No learning or adaptation</td><td>~99.9%; &lt;50ms</td><td>Credit decisioning, hard policy cutoffs, PMLA screening, MITC template selection. If the decision tree is fully specifiable, an agent adds risk without value</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 5B: Agent failure mode taxonomy -->
+        <div class="failure-modes">
+          <strong>Agent failure modes that matter:</strong>
+          <ul>
+            <li><strong>Compound reliability collapse (MAST study: 41–86.7% failure rates):</strong> each agent step multiplies failure probability. A 6-step agent at 85% per step has 37% end-to-end success. At 90% per step, it's 53%. The only way to hit >95% end-to-end is to reduce steps or make each step near-deterministic</li>
+            <li><strong>Coordination breakdown (36.9% of multi-agent failures):</strong> in supervisor-specialist architectures, the supervisor misroutes tasks, specialists produce contradictory outputs, or handoff state is lost between agents. This is the dominant failure mode, not individual agent errors</li>
+            <li><strong>Timeout budget exhaustion (NPCI 30s):</strong> the agent reasons for 8 seconds, calls AA (3s), calls bureau (2s), runs the model (1.5s), calls CBS (2s) — total 16.5s before response generation even starts. One retry or one slow FIP response pushes past the NPCI session timeout</li>
+            <li><strong>Idempotency violation:</strong> the agent retries a CBS loan disbursement call after a timeout — but the first call actually succeeded. Without idempotency keys, the borrower receives two disbursements. This is not a theoretical risk — it has happened at production Indian NBFCs</li>
+            <li><strong>Autonomous action beyond boundary (Gartner: 40%+ agentic projects cancelled by 2027):</strong> the agent decides to approve a loan, initiate a UPI transfer, or send a collections notice without the human checkpoint mandated by DLG 2025. The PM must define the autonomous action boundary in the PRD, not leave it to engineering defaults</li>
+          </ul>
+        </div>
+
+        <!-- Block 5C: Decision framework — agents vs. workflows -->
+        <div class="decision-framework">
+          <table class="eval-table">
+            <thead><tr><th>Recommendation</th><th>Use when</th><th>Avoid when</th><th>NBFC-specific controls</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Use BRE + rules (no agent)</strong></td><td>Decision tree is fully specifiable; task is high-stakes and must be auditable; latency budget &lt;200ms</td><td>Task involves natural language understanding, ambiguity, or unstructured data</td><td>Credit decisioning, PMLA screening, MITC template selection, hard policy cutoffs. The default choice — agents must justify their existence</td></tr>
+              <tr><td><strong>Use deterministic workflow + agent nodes</strong></td><td>Most steps are deterministic but 1–2 steps require NLU (document classification, borrower Q&A, explanation generation)</td><td>The entire task is ambiguous or the workflow graph cannot be pre-defined</td><td>Loan origination pipeline, collections strategy selection, servicing copilot. Human checkpoint at disbursement per DLG 2025</td></tr>
+              <tr><td><strong>Use single ReAct agent</strong></td><td>Task is low-stakes, few-step (≤4), and failure = retry not compliance violation. Internal tools only</td><td>Task touches financial transactions, regulatory data, or customer-facing decisions</td><td>Internal knowledge copilot, RBI policy Q&A for compliance team, credit analyst research assistant. Never customer-facing without human review</td></tr>
+              <tr><td><strong>Do not use multi-agent architectures</strong></td><td>Almost never in NBFC production. Coordination failure rate (36.9%) and error amplification (17.2×) make the reliability math untenable for regulated financial services</td><td>—</td><td>If you're considering a multi-agent system, the burden of proof is on the proposer to demonstrate why a deterministic workflow + agent nodes cannot achieve the same outcome. Gartner projects 40%+ of agentic AI projects will be cancelled by 2027</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 5D: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> The correct architecture for NBFC agentic AI is agents inside deterministic workflow scaffolding — not autonomous agent chains. The MAST study's finding of 41–86.7% failure rates across seven frameworks, with coordination breakdowns at 36.9% and error amplification at 17.2×, makes the case definitively: multi-agent architectures are research artifacts, not production-ready for regulated financial services. DLG 2025's human approval requirement for disbursement is not a temporary constraint — it is a permanent architectural boundary. The PM's job is to draw the line between "agent handles this" and "deterministic code handles this" for every step in every pipeline, and to ensure that line is documented, tested, and auditable.
         </div>
       </section>
 
@@ -551,6 +728,39 @@
             <p class="inspector-placeholder">Click any layer above to see its PM relevance, fintech analogy, key metrics, and learning resources.</p>
           </div>
         </div>
+
+        <!-- Block 6A: Latency budget breakdown table -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>Pipeline layer</th><th>Target p95</th><th>Failure mode if exceeded</th><th>PM control lever</th></tr></thead>
+            <tbody>
+              <tr><td>1. Intent capture + PMLA gate</td><td>&lt; 200ms</td><td>User perceives lag on first interaction; PMLA gate timeout causes silent pass-through (compliance violation)</td><td>Pre-compute PMLA blocklists in Redis; async logging; define hard-fail vs soft-fail policy with compliance team</td></tr>
+              <tr><td>2. Safety + risk routing</td><td>&lt; 150ms</td><td>High-risk customers routed to low-risk pipeline; safety classifier timeout defaults to "safe" (adversarial bypass)</td><td>Own the default-on-timeout policy — must be "block" not "pass". Cache risk tier lookups. Define routing SLA in PRD</td></tr>
+              <tr><td>3. AA data fetch + retrieval</td><td>&lt; 800ms (AA) + 300ms (vector search)</td><td>AA FIP timeout cascades into stale data fallback; retrieval latency spikes during regulatory filing seasons</td><td>Define AA fallback policy (cached data age limit: 24h for underwriting, 72h for servicing). Pre-warm vector indices</td></tr>
+              <tr><td>4. LLM inference</td><td>&lt; 1,500ms (frontier) / 400ms (mid-tier)</td><td>Streaming mitigates perceived latency but total cost scales with token count; timeout kills mid-generation = partial response shown to user</td><td>Own model-tier selection per use case. Streaming mandatory for >500 token outputs. Define max_tokens budget per endpoint</td></tr>
+              <tr><td>5. BRE / scorecard execution</td><td>&lt; 50ms</td><td>BRE rule evaluation on 500+ rules can spike to 200ms; scorecard feature computation bottleneck on bureau API response</td><td>Separate BRE from scorecard pipeline. Pre-compute bureau features at application submission, not at decision time</td></tr>
+              <tr><td>6. NPCI / CBS execution</td><td>&lt; 300ms (NPCI) / 500ms (CBS)</td><td>NPCI 30s session timeout is absolute — any upstream delay compounds here. CBS write failures require idempotent retry</td><td>Budget NPCI latency as a hard constraint, not a target. Implement circuit breakers on CBS writes. PSR tracking per mandate</td></tr>
+              <tr><td>7. Output + MITC compliance</td><td>&lt; 200ms</td><td>MITC disclosure generation timeout = disbursement without disclosure (DLG 2025 violation). Audit log write failure = compliance gap</td><td>MITC generation must be synchronous and blocking — never skip on timeout. Audit log writes can be async with guaranteed delivery</td></tr>
+            </tbody>
+          </table>
+          <div class="eval-note">End-to-end budget: &lt; 3,200ms for LLM-powered flows, &lt; 2,400ms for scorecard-only flows. NPCI's 30-second session timeout is the absolute ceiling — but user experience degrades sharply after 3 seconds.</div>
+        </div>
+
+        <!-- Block 6B: Strategic failure modes -->
+        <div class="failure-modes">
+          <strong>Strategic failure modes that matter:</strong>
+          <ul>
+            <li><strong>Safety gate bypass on timeout:</strong> when the PMLA/safety classifier times out, does the system default to "pass" or "block"? Most early NBFC implementations default to "pass" — this is a compliance time bomb. The PM must own this policy decision and document it for RBI inspection</li>
+            <li><strong>Retrieval-model mismatch:</strong> the RAG pipeline retrieves DLG 2022 content but the model generates an answer citing DLG 2025 — because the ingestion pipeline hasn't been updated after the May 2025 repeal. Retrieval freshness SLA must be a product-owned metric</li>
+            <li><strong>Audit loop lag:</strong> the audit feedback loop runs async but falls behind during peak disbursement periods. Compliance team discovers issues 48 hours after disbursement — by which time 500+ loans have been disbursed with incorrect MITC disclosures</li>
+            <li><strong>DLG 2025 multi-lender violation:</strong> the OCEN integration presents offers from a single preferred lender instead of the unbiased multi-lender presentation mandated by DLG 2025. This is not a UX preference — it is a regulatory requirement with the CIMS portal as the enforcement mechanism</li>
+          </ul>
+        </div>
+
+        <!-- Block 6C: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> The latency budget is the single artifact that translates infrastructure risk into board-level language. When the CTO says "we need to optimise the pipeline," the PM's response should be a seven-layer latency budget with failure-mode-per-layer, not a vague request for "faster." RBI FREE-AI's infrastructure pillar explicitly requires documented performance SLAs for AI systems. A PM who can present the latency budget table at a board meeting — with NPCI timeout as the hard constraint, MITC compliance as the blocking gate, and AA data freshness as the quality lever — is speaking the language that both the regulator and the CFO understand.
+        </div>
       </section>
 
       <!-- ═══════════════════ SECTION 7: NBFC SYSTEMS ═══════════════════ -->
@@ -584,9 +794,9 @@
         <div class="nbfc-systems-grid">
 
           <!-- CRM -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #1d9a6c">
+          <article class="nbfc-system-card color-green">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#dff4ea;color:#1d9a6c">CRM</span>
+              <span class="nbfc-system-badge color-green">CRM</span>
               <h3>Customer Relationship Management</h3>
             </div>
             <p class="nbfc-system-role">AI role: predict, personalise, and prioritise before a loan application is filed.</p>
@@ -607,9 +817,9 @@
           </article>
 
           <!-- LOS -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #2563eb">
+          <article class="nbfc-system-card color-blue">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#dbeafe;color:#2563eb">LOS</span>
+              <span class="nbfc-system-badge color-blue">LOS</span>
               <h3>Loan Origination System</h3>
             </div>
             <p class="nbfc-system-role">AI role: automate underwriting, eliminate fraud, and generate RBI-compliant loan offers at scale.</p>
@@ -630,9 +840,9 @@
           </article>
 
           <!-- LMS -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #7c3aed">
+          <article class="nbfc-system-card color-purple">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#ede9fe;color:#7c3aed">LMS</span>
+              <span class="nbfc-system-badge color-purple">LMS</span>
               <h3>Loan Management System</h3>
             </div>
             <p class="nbfc-system-role">AI role: predict repayment risk, enable proactive servicing, and flag early distress before DPD begins.</p>
@@ -653,9 +863,9 @@
           </article>
 
           <!-- Collections -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #ea580c">
+          <article class="nbfc-system-card color-orange">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#ffedd5;color:#ea580c">Collections</span>
+              <span class="nbfc-system-badge color-orange">Collections</span>
               <h3>Collections &amp; Recovery</h3>
             </div>
             <p class="nbfc-system-role">AI role: maximise recovery while minimising RBI-prohibited harassment — through data, not pressure.</p>
@@ -676,9 +886,9 @@
           </article>
 
           <!-- Fraud & AML -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #0f766e">
+          <article class="nbfc-system-card color-teal">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#ccfbf1;color:#0f766e">Fraud &amp; AML</span>
+              <span class="nbfc-system-badge color-teal">Fraud &amp; AML</span>
               <h3>Fraud Detection &amp; Anti-Money Laundering</h3>
             </div>
             <p class="nbfc-system-role">AI role: catch fraud before disbursement and flag suspicious transactions for AML compliance — without creating 2,000 false declines a day on a 1-lakh application volume.</p>
@@ -703,6 +913,30 @@
         <div class="key-concept">
           <strong>PM Takeaway:</strong> Most NBFC AI PMs are hired into one of these five systems — but the highest-impact decisions require understanding how they connect. An EWS signal from LMS should feed CRM retention before it becomes a Collections problem. A CRM next-best-action recommendation is only safe if the LOS fraud gate has already run. A fraud ring detected at LOS should retrospectively flag the same device cluster in CRM. Draw this full data flow before you write your first AI feature spec.
         </div>
+
+        <!-- Block 7A: Where AI works / doesn't — per system table -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>System</th><th>Where AI works</th><th>Where it doesn't</th><th>What to watch</th></tr></thead>
+            <tbody>
+              <tr><td>CRM (lead → onboarding)</td><td>Lead scoring, next-best-action recommendations, churn prediction, WhatsApp conversational AI for lead nurturing</td><td>Autonomous loan term negotiation (compliance risk); unsupervised customer communication that could constitute a financial offer under DLG 2025</td><td>Conversational AI + AA pre-qualification: AI qualifies leads before human handoff. DPDP Phase 2 consent managers will change how CRM handles customer data</td></tr>
+              <tr><td>LOS (application → disbursement)</td><td>Document classification, AA cash-flow feature extraction, auto-underwriting for clean cases (60–70% of volume), BRE + scorecard ensemble</td><td>Final credit approval without human review (DLG 2025 mandates human checkpoint). Complex MSME underwriting with qualitative factors — LLM can assist but not decide</td><td>LLM-augmented MSME scoring (thin-file segments). DLG 2025 multi-lender OCEN integration changes the origination flow. CIMS portal reporting from LOS is now mandatory</td></tr>
+              <tr><td>LMS (servicing → EWS)</td><td>Servicing copilot (prepayment queries, statement generation, MITC lookup). Early warning system using AA recurring consent data + behavioural signals</td><td>Autonomous loan restructuring decisions. AI-generated communications that alter loan terms without human approval. MITC modifications require compliance sign-off</td><td>Predictive EWS shifting from reactive (DPD-based) to proactive (AA cash-flow-based). Voice analytics for servicing call quality. Real-time NPA prediction models</td></tr>
+              <tr><td>Collections (DPD → resolution)</td><td>Strategy optimisation (time, channel, message per borrower segment). Voice analytics for agent coaching. Predictive skip tracing. Settlement amount optimisation</td><td>Autonomous settlement authority beyond defined thresholds. AI-generated legal notices (must be reviewed by legal team). Aggressive tone in AI-generated communications (RBI Fair Practices Code)</td><td>Pre-delinquency intervention using EWS signals. AI-powered digital collections (WhatsApp, app push) reducing call-centre dependency. RBI guidelines on AI in collections expected 2026–2027</td></tr>
+              <tr><td>Fraud &amp; AML</td><td>Real-time transaction fraud scoring (UPI, NACH). Device fingerprinting. Graph-based fraud ring detection (GNN). Velocity pattern detection across applications</td><td>Autonomous account blocking without human review (legal risk). AML/STR decisions — PMLA requires human judgement for STR filing. False positive suppression without compliance review</td><td>NPCI federated learning model for UPI fraud (MuleHunter.AI). Cross-NBFC fraud signal sharing via industry consortiums. DPDP 2025 limits on device data collection for fraud scoring</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 7B: Cross-system integration failure modes -->
+        <div class="failure-modes">
+          <strong>Cross-system failure modes that matter:</strong>
+          <ul>
+            <li><strong>EWS signal siloed in LMS:</strong> the early warning system detects cash-flow deterioration via AA data, but the signal doesn't reach Collections until the borrower crosses DPD 30. By then, the intervention window has closed. The EWS → Collections → CRM data pipeline must be real-time, not batch</li>
+            <li><strong>Fraud ring invisible across systems:</strong> a fraud ring uses the same device cluster across CRM lead generation and LOS applications, but the fraud detection system only analyses LOS data. Cross-system device fingerprint correlation must feed the fraud graph — CRM, LOS, and LMS data must be unified in the fraud detection layer</li>
+            <li><strong>DPDP consent fragmentation:</strong> the customer gives consent for data processing in CRM (marketing), LOS (underwriting), and LMS (servicing) — but these are three separate consent artifacts with different purposes and expiry dates. Under DPDP 2025 Phase 2, each system must independently enforce consent scope and honour withdrawal requests within 72 hours. A centralised consent management layer is not optional — it is a regulatory requirement by November 2026</li>
+          </ul>
+        </div>
       </section>
 
       <!-- ═══════════════════ SECTION 8: EVALS ═══════════════════ -->
@@ -713,9 +947,9 @@
         <div class="evals-grid">
 
           <!-- OFFLINE EVALS -->
-          <article class="eval-card" style="border-left: 4px solid #1d9a6c">
+          <article class="eval-card color-green">
             <div class="eval-card-header">
-              <span class="eval-badge" style="background:#dff4ea;color:#1d9a6c">Offline Evals</span>
+              <span class="eval-badge color-green">Offline Evals</span>
               <h3>Pre-deploy quality gates on golden datasets</h3>
             </div>
             <p>Run before every release. Measure on a static, curated dataset that doesn't change — so regressions are unambiguous.</p>
@@ -733,9 +967,9 @@
           </article>
 
           <!-- ONLINE EVALS -->
-          <article class="eval-card" style="border-left: 4px solid #2563eb">
+          <article class="eval-card color-blue">
             <div class="eval-card-header">
-              <span class="eval-badge" style="background:#dbeafe;color:#2563eb">Online Evals</span>
+              <span class="eval-badge color-blue">Online Evals</span>
               <h3>Live production signal monitoring</h3>
             </div>
             <p>Run continuously in production. Track real customer outcomes — not just model outputs — to catch drift that offline evals miss.</p>
@@ -753,9 +987,9 @@
           </article>
 
           <!-- COMPLIANCE EVALS -->
-          <article class="eval-card" style="border-left: 4px solid #7c3aed">
+          <article class="eval-card color-purple">
             <div class="eval-card-header">
-              <span class="eval-badge" style="background:#ede9fe;color:#7c3aed">Compliance Evals</span>
+              <span class="eval-badge color-purple">Compliance Evals</span>
               <h3>RBI, PMLA &amp; DPDP adherence checks</h3>
             </div>
             <p>Run on every release and monthly in production. These are the checks that determine whether the NBFC passes or fails an RBI inspection. Zero tolerance — a single breach can trigger a show-cause notice.</p>
@@ -774,9 +1008,9 @@
           </article>
 
           <!-- FAIRNESS EVALS -->
-          <article class="eval-card" style="border-left: 4px solid #ea580c">
+          <article class="eval-card color-orange">
             <div class="eval-card-header">
-              <span class="eval-badge" style="background:#ffedd5;color:#ea580c">Fairness Evals</span>
+              <span class="eval-badge color-orange">Fairness Evals</span>
               <h3>Equity across segments, geographies &amp; tiers</h3>
             </div>
             <p>Run quarterly at minimum. Indian NBFC AI systems serve enormously diverse populations — fairness gaps that are invisible in aggregate metrics show up here.</p>
@@ -794,9 +1028,9 @@
           </article>
 
           <!-- MODEL GOVERNANCE EVALS -->
-          <article class="eval-card" style="border-left: 4px solid #0f766e">
+          <article class="eval-card color-teal">
             <div class="eval-card-header">
-              <span class="eval-badge" style="background:#ccfbf1;color:#0f766e">Model Governance</span>
+              <span class="eval-badge color-teal">Model Governance</span>
               <h3>Model risk management &amp; lifecycle oversight</h3>
             </div>
             <p>Run on every model deployment and monthly in production. Model governance is not engineering hygiene — it is an RBI inspection requirement for NBFCs using AI in credit decisions.</p>
@@ -840,6 +1074,36 @@
 
         <div class="key-concept">
           <strong>PM Takeaway:</strong> Evals are not engineering deliverables — they are product deliverables. The PM owns the golden dataset, defines the compliance thresholds, and signs off on the fairness eval results. When the RBI inspector asks "how do you know your AI model is not discriminating against Tier 3 customers?", the answer is in your quarterly fairness eval report, not in your model card.
+        </div>
+
+        <!-- Block 8A: Eval maturity model table -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>Level</th><th>Description</th><th>Typical NBFC state</th><th>Invest in next</th></tr></thead>
+            <tbody>
+              <tr><td>L0 — No evals</td><td>Ship and pray. Quality is measured by complaint volume. No golden dataset, no regression suite, no drift monitoring</td><td>Early-stage NBFCs with first AI feature (chatbot, FAQ). ~40% of Indian NBFCs with AI pilots are here (RBI FREE-AI survey: only 21% of surveyed entities use AI with any governance)</td><td>Build a golden dataset of 200+ cases covering the top 5 NBFC use cases. Define pass/fail thresholds. Run manually before each release</td></tr>
+              <tr><td>L1 — Offline evals</td><td>Golden dataset exists. Regression suite runs pre-deploy. Compliance checklist is manual but consistent</td><td>Digital lenders with 1–2 production AI features. Eval exists but is owned by engineering, not product. No fairness or adversarial testing</td><td>Add online production metrics (hallucination rate, compliance violation rate). Transfer eval ownership from engineering to product. Add Hindi/regional language test cases</td></tr>
+              <tr><td>L2 — Online + offline</td><td>Production monitoring dashboards. Weekly metric reviews. Drift detection on key features (PSI, KS). GRO complaint correlation with AI outputs</td><td>Mid-to-large NBFCs with multiple AI features in production. Eval is a product ritual. RBI inspection readiness is improving</td><td>Add adversarial red-teaming (prompt injection, policy bypass attempts). Build fairness evals across CIBIL bands, geography, and gender. Automate golden dataset refresh</td></tr>
+              <tr><td>L3 — Full eval stack</td><td>Offline + online + adversarial + fairness + compliance. Independent model validation (MRM). Automated golden dataset refresh. Board-level AI risk reporting per RBI FREE-AI framework</td><td>Top 5–10 tech-forward NBFCs. Eval infrastructure is a competitive moat. RBI inspection-ready at all times. MRM aligned with SR 11-7 principles</td><td>Invest in eval-as-a-service for new feature teams. Build internal eval benchmarks. Contribute to industry standards via DLAI/NASSCOM working groups</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 8B: Common eval anti-patterns -->
+        <div class="failure-modes">
+          <strong>Eval anti-patterns that matter:</strong>
+          <ul>
+            <li><strong>Aggregate accuracy theatre:</strong> reporting 95% accuracy on an eval set that is 80% easy cases. A model can be 95% accurate overall and still hallucinate on 30% of RBI policy questions — the tail is where compliance risk lives</li>
+            <li><strong>Golden dataset decay:</strong> the eval set was built in 2023 using DLG 2022 terminology. DLG 2025 (May 8, 2025) repeals the 2022 guidelines — every policy RAG eval case referencing "DLG 2022" is now stale. Golden datasets must be refreshed on every major regulatory change</li>
+            <li><strong>Eval-production gap:</strong> evals run on clean English text but production traffic is 60% Hindi/Hinglish WhatsApp messages with abbreviations, emoji, and code-switching. If your eval doesn't test what your users actually type, it measures nothing</li>
+            <li><strong>Compliance checkbox without adversarial testing:</strong> checking "MITC disclosure present" without testing whether a prompt injection can suppress the disclosure. Adversarial evals are not optional after RBI FREE-AI's assurance pillar</li>
+            <li><strong>MRM without independence:</strong> the team that builds the model also validates it. RBI FREE-AI and SR 11-7 require independent model validation — the same data scientist cannot build and sign off. PMs must ensure the org chart supports this separation</li>
+          </ul>
+        </div>
+
+        <!-- Block 8C: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> The RBI FREE-AI survey finding that only 21% of surveyed financial entities use AI with any governance framework means the remaining 79% have no eval infrastructure at all. This is simultaneously a risk (regulatory crackdown is coming) and an opportunity (building evals from day one is a genuine competitive advantage). The cost of eval infrastructure is ~10–15% of AI feature development cost. The cost of not having evals is measured in RBI show-cause notices, GRO complaint escalations, and the reputational damage of a publicly reported AI failure. PMs who treat evals as a post-launch afterthought will find themselves explaining to the board why the regulator is asking questions they cannot answer.
         </div>
       </section>
 
@@ -914,6 +1178,49 @@
         </div>
         <div class="key-concept">
           <strong>PM Takeaway:</strong> The credit stack is a system of systems — bureau provides history, AA provides current cash flow, the BRE applies policy, the scorecard provides a risk score, and XAI translates the decision for the customer. Owning credit intelligence as a PM means understanding all five layers, their interdependencies, and their failure modes — not just the model accuracy number.
+        </div>
+
+        <!-- Block 9A: Scoring approach comparison table -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>Approach</th><th>Strengths</th><th>Failure modes</th><th>Explainability</th><th>Best fit</th></tr></thead>
+            <tbody>
+              <tr><td>Traditional LR scorecard (WoE + IV)</td><td>Fully interpretable; regulator-approved; fast inference <5ms; proven 20+ year track record in Indian bureaus</td><td>Cannot capture non-linear interactions; degrades on thin-file segments; requires manual feature engineering refresh every 6–12 months</td><td>Inherently explainable — coefficient weights map directly to adverse action codes per RBI Fair Practices Code</td><td>Secured lending (LAP, gold), prime bureau segments (CIBIL >720), regulatory-first use cases</td></tr>
+              <tr><td>GBM ensemble (XGBoost / LightGBM)</td><td>Best accuracy-interpretability tradeoff; handles missing data natively; SHAP values available; 10–50ms inference</td><td>Overfitting on small NBFC portfolios (<50K accounts); feature drift undetected without PSI monitoring; SHAP approximation can be misleading on correlated features</td><td>Post-hoc via SHAP — acceptable to most auditors but requires MRM documentation per RBI FREE-AI framework (August 2025)</td><td>Unsecured personal loans, BNPL, digital lending — the workhorse of Indian NBFC underwriting</td></tr>
+              <tr><td>Hybrid ensemble (LR + GBM + rules)</td><td>LR provides regulatory backbone; GBM captures signal; BRE applies hard cutoffs. Combines compliance with performance</td><td>Integration complexity — three systems must agree on feature definitions; debugging disagreements between model and rules is time-consuming</td><td>LR layer is explainable; GBM layer requires SHAP; BRE rules are transparent. Overall explainability is good if documented</td><td>Mid-to-large NBFCs with both regulatory scrutiny and performance targets — the emerging standard architecture</td></tr>
+              <tr><td>Deep learning (neural nets)</td><td>Can learn complex sequential patterns from AA transaction data; strong on unstructured data (bank statement PDFs)</td><td>Black box — RBI Fair Practices Code compliance is extremely difficult; requires 500K+ training samples most NBFCs don't have; inference 100–500ms</td><td>Poor — attention weights and LIME are unreliable for credit decisions. No Indian regulator has accepted neural net explanations as sufficient</td><td>Only viable for pre-screening or AA cash-flow feature extraction — never as the final credit decision model in a regulated NBFC</td></tr>
+              <tr><td>LLM-augmented scoring</td><td>Can extract structured features from unstructured sources (GST filings, bank statements, news); useful for MSME qualitative signals</td><td>Hallucination risk on numerical extraction (4%+ error rate observed); latency 2–10s per query; cost $0.01–0.05 per application; not deterministic</td><td>The LLM layer itself is unexplainable — only usable as a feature extraction pre-processor feeding into an explainable scoring model</td><td>MSME underwriting where qualitative signals (business description, GST filing patterns) supplement thin bureau data — always as input to, never replacement for, a traditional model</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 9B: Alternative data — where it works / where it doesn't -->
+        <div class="where-works">
+          <div class="where-yes">
+            <strong>Where alternative data works</strong>
+            <ul>
+              <li><strong>AA bank statement cash flow:</strong> verified income and obligation mapping — the single most impactful alternative data source for Indian NBFCs. Consent-based, regulator-endorsed, and increasingly mandated</li>
+              <li><strong>GST filing history:</strong> revenue proxy for MSMEs with 12+ months of filings. Cross-validates stated income. GST e-invoice data adds transaction-level granularity</li>
+              <li><strong>UPI transaction patterns:</strong> frequency, merchant category, and inflow/outflow ratios provide behavioural signals for thin-file borrowers</li>
+              <li><strong>Telco data (with consent):</strong> recharge patterns and tenure as stability proxies for new-to-credit segments. Must comply with DPDP 2025 consent requirements</li>
+              <li><strong>Bureau enquiry patterns:</strong> number of hard pulls across lenders in 30/90/180 day windows — strong over-indebtedness signal already available in bureau reports</li>
+            </ul>
+          </div>
+          <div class="where-no">
+            <strong>Where alternative data doesn't work</strong>
+            <ul>
+              <li><strong>Social media signals:</strong> no proven credit-predictive power in Indian markets; DPDP 2025 makes collection legally risky; RBI has informally discouraged its use</li>
+              <li><strong>Psychometric scoring:</strong> high variance, culturally biased question sets, and no regulatory acceptance framework in India. Academic interest, not production-ready</li>
+              <li><strong>Device-as-credit-proxy:</strong> phone model, app inventory, and battery patterns — correlates with income but legally problematic under DPDP 2025; multiple NBFCs have received RBI observations</li>
+              <li><strong>App usage / screen time data:</strong> invasive, legally questionable post-DPDP, and the signal degrades rapidly as borrowers learn to game it</li>
+              <li><strong>Email / SMS parsing:</strong> high-signal but the Digital Lending Guidelines 2025 restrict LSP data access; DPDP breach risk is existential for an NBFC</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Block 9C: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> The three-layer credit architecture (bureau + AA cash flow + alternative data) is shifting unevenly. Bureau remains the regulatory anchor. AA is the growth story — 7 AAs, 54 bank FIPs, and MSME underwriting transformed by verified cash-flow data. Alternative data is narrowing, not expanding: DPDP 2025 and DLG 2025 together eliminate the most invasive sources (device data, SMS parsing, social). The PM must own segment-level model selection — GBM for unsecured prime, hybrid for mid-market, LR for secured — and ensure each scoring approach has board-level justification per the RBI FREE-AI framework's model risk governance pillar. The era of "throw all data at XGBoost" is over; the era of "justify every feature, every model, every segment to the regulator" has begun.
         </div>
       </section>
 
@@ -990,6 +1297,57 @@
         <div class="key-concept">
           <strong>PM Takeaway:</strong> India Stack is not a set of optional integrations — it is the operating system of Indian digital lending. Aadhaar + DigiLocker + CKYC reduce onboarding cost by 80%. AA transforms underwriting for the 300M+ thin-file borrowers. UPI AutoPay is the EMI collection infrastructure. OCEN is the distribution rail. A PM who cannot speak fluently about all seven components is not ready for a senior NBFC product role.
         </div>
+
+        <!-- Block 10A: India Stack adoption maturity table -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>Component</th><th>Adoption maturity</th><th>Integration failure modes</th><th>What to watch (2026–2027)</th></tr></thead>
+            <tbody>
+              <tr><td>Aadhaar eKYC / V-KYC</td><td>Mature — near-universal NBFC adoption. UIDAI uptime ~99.5%, but intermittent biometric failures in rural areas</td><td>Liveness spoofing (deepfake injection); UIDAI outage cascades blocking onboarding; V-KYC drop-off >40% on low-bandwidth connections</td><td>RBI push toward V-KYC as default for high-value loans; UIDAI face-auth upgrade; DPDP Phase 2 consent layering on Aadhaar data</td></tr>
+              <tr><td>DigiLocker</td><td>Growth — 42.7 crore users. Document pull API stable; push-based issuance expanding</td><td>Schema mismatch across issuers (ITR XML versions); stale documents (PAN linked to old name); API rate limits during peak filing season</td><td>Insurance and MF document integration; RBI acceptance as KYC-equivalent expanding; DPDP consent manager integration</td></tr>
+              <tr><td>CKYC registry</td><td>Operational — mandatory for all REs. Duplicate detection improving but not solved</td><td>Duplicate CKYC records (~8% estimated); upload rejection on format errors; 48-hour lag between KYC completion and CKYC availability</td><td>CERSAI integration with AA for real-time KYC refresh; potential for Aadhaar-linked dedup; DPDP data retention limits on stored KYC</td></tr>
+              <tr><td>Account Aggregator 2.0</td><td>Scaling — 7 AAs approved, 54 banks + 24 insurers as FIPs. Consent completion rate ~60–80%</td><td>Consent expiry mismanagement (FIU pulls on expired consent = compliance violation); FIP downtime (bank API failures); data format inconsistency across FIPs</td><td>AA 2.0 recurring consent for ongoing monitoring; insurance and securities FIP onboarding; RBI mandate for all scheduled banks as FIPs by 2027</td></tr>
+              <tr><td>OCEN 4.0</td><td>Early — DLG 2025 (May 8, 2025) transforms the framework. Multi-lender LSP model now mandated</td><td>DLG cap at 5% creates pricing pressure; unbiased offer presentation requirement breaks LSP-lender exclusivity; CIMS portal reporting overhead</td><td>DLG 2025 CIMS portal reporting deadline (June 15, 2025 onward); multi-lender offer UI standardisation; OCEN + AA integration for instant cash-flow underwriting</td></tr>
+              <tr><td>UPI AutoPay / NACH</td><td>Mature — 21.7B UPI transactions in Jan 2026 (₹28.33 lakh crore). PSR is a board-level KPI</td><td>R01 (insufficient funds) cascading into NPA misclassification; mandate revocation without borrower notification; UPI fraud up 85% FY 2023–24 — MuleHunter.AI deployed but adoption uneven</td><td>NPCI federated learning model for fraud scoring; PSR-linked dynamic collection strategies; UPI Lite autopay for micro-EMIs</td></tr>
+              <tr><td>e-Rupee CBDC</td><td>Pilot — limited to select banks. No NBFC integration pathway yet</td><td>No production API for NBFCs; unclear settlement finality for lending use cases; programmability spec not finalised</td><td>RBI retail CBDC expansion roadmap; potential for programmable EMI disbursement; earliest NBFC relevance likely 2028+</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 10B: Fund / avoid / monitor -->
+        <div class="fund-avoid-monitor">
+          <div class="fam-fund">
+            <strong>Fund now</strong>
+            <ul>
+              <li>AA 2.0 production integration — recurring consent for ongoing cash-flow monitoring, not just one-time underwriting pulls</li>
+              <li>UPI AutoPay R01 re-presentation strategy — same-day retry logic linked to salary credit detection via AA data</li>
+              <li>CKYC auto-lookup at onboarding — eliminate redundant KYC, reduce cost from ₹150–300 to ~₹15 per customer</li>
+              <li>DLG 2025 multi-lender compliance — unbiased offer presentation UI and CIMS portal integration before June 2025 deadline</li>
+            </ul>
+          </div>
+          <div class="fam-avoid">
+            <strong>Avoid</strong>
+            <ul>
+              <li>e-Rupee CBDC integration — too early, no NBFC API, earliest production relevance 2028+</li>
+              <li>Proprietary alternatives to India Stack rails (custom e-mandate, non-AA data pipes) — regulatory convergence will strand these investments</li>
+              <li>Premature OCEN lending integration without DLG 2025 compliance architecture — the multi-lender and DLG cap requirements change the unit economics fundamentally</li>
+            </ul>
+          </div>
+          <div class="fam-monitor">
+            <strong>Monitor</strong>
+            <ul>
+              <li>DPDP Phase 2 (November 2026) — consent manager requirement will force re-architecture of every India Stack data flow</li>
+              <li>NPCI federated learning rollout — may change UPI fraud scoring from rule-based to ML-based, affecting NBFC fraud detection pipelines</li>
+              <li>AA insurance and securities FIP expansion — cross-product underwriting (insurance history as credit signal) becomes possible</li>
+              <li>RBI Digital Lending Directions 2025 multi-lender impact on LSP business models</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Block 10C: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> India Stack is entering its second phase — from "can we connect?" to "can we operate reliably, compliantly, and at depth?" The DLG 2025 repeal of the 2022 guidelines, the DPDP Phase 2 consent manager requirement (November 2026), and the AA 2.0 recurring consent framework collectively force a re-architecture of every India Stack integration built in the 2022–2024 wave. PMs who treat India Stack as a completed checkbox will be caught off-guard. The PM's job is to own the integration reliability SLAs (AA consent completion >80%, CKYC lookup <2s, UPI PSR >92%) and the regulatory upgrade calendar as first-class product requirements.
+        </div>
       </section>
 
       <!-- ═══════════════════ SECTION 11: PORTFOLIO & RISK ═══════════════════ -->
@@ -1000,9 +1358,9 @@
         <div class="nbfc-systems-grid">
 
           <!-- Portfolio Health Metrics -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #1d9a6c">
+          <article class="nbfc-system-card color-green">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#dff4ea;color:#1d9a6c">Portfolio Health</span>
+              <span class="nbfc-system-badge color-green">Portfolio Health</span>
               <h3>Portfolio Health Metrics</h3>
             </div>
             <p class="nbfc-system-role">PM role: own the portfolio quality cockpit — the weekly view that credit, risk, and product review together.</p>
@@ -1023,9 +1381,9 @@
           </article>
 
           <!-- NBFC Unit Economics -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #2563eb">
+          <article class="nbfc-system-card color-blue">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#dbeafe;color:#2563eb">Unit Economics</span>
+              <span class="nbfc-system-badge color-blue">Unit Economics</span>
               <h3>NBFC Unit Economics</h3>
             </div>
             <p class="nbfc-system-role">PM role: understand how every product decision shifts the P&amp;L — ticket size, tenure, segment, and AI automation all move these levers.</p>
@@ -1046,9 +1404,9 @@
           </article>
 
           <!-- ALM & Liquidity -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #7c3aed">
+          <article class="nbfc-system-card color-purple">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#ede9fe;color:#7c3aed">ALM</span>
+              <span class="nbfc-system-badge color-purple">ALM</span>
               <h3>Asset Liability Management (ALM)</h3>
             </div>
             <p class="nbfc-system-role">PM role: do not create product features that worsen ALM mismatch without risk committee sign-off.</p>
@@ -1069,9 +1427,9 @@
           </article>
 
           <!-- Capital Adequacy & SBR -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #ea580c">
+          <article class="nbfc-system-card color-orange">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#ffedd5;color:#ea580c">Capital</span>
+              <span class="nbfc-system-badge color-orange">Capital</span>
               <h3>Capital Adequacy &amp; SBR</h3>
             </div>
             <p class="nbfc-system-role">PM role: know which SBR tier your NBFC is in — it determines which products you can build and what governance your product decisions require.</p>
@@ -1092,9 +1450,9 @@
           </article>
 
           <!-- Collections Funnel -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #b45309">
+          <article class="nbfc-system-card color-amber">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#fef3c7;color:#b45309">Collections</span>
+              <span class="nbfc-system-badge color-amber">Collections</span>
               <h3>Collections Funnel &amp; Strategy</h3>
             </div>
             <p class="nbfc-system-role">PM role: design collections as a data and UX problem — AI improves recovery while keeping the NBFC compliant with RBI fair practice requirements.</p>
@@ -1115,9 +1473,9 @@
           </article>
 
           <!-- Fraud & AML -->
-          <article class="nbfc-system-card" style="border-top: 3px solid #0f766e">
+          <article class="nbfc-system-card color-teal">
             <div class="nbfc-system-header">
-              <span class="nbfc-system-badge" style="background:#ccfbf1;color:#0f766e">Fraud &amp; AML</span>
+              <span class="nbfc-system-badge color-teal">Fraud &amp; AML</span>
               <h3>Fraud Detection &amp; AML</h3>
             </div>
             <p class="nbfc-system-role">PM role: balance fraud prevention with customer experience — a 2% false positive rate on 1 lakh daily applications = 2,000 legitimate customers wrongly declined.</p>
@@ -1141,6 +1499,55 @@
 
         <div class="key-concept">
           <strong>PM Takeaway:</strong> Portfolio health, unit economics, ALM, capital, collections, and fraud are not "risk team problems" — they are product constraints. Every product decision a PM makes (loan tenure, ticket size, target segment, collection channel) has a direct knock-on effect on at least three of these six dimensions. The PMs who get promoted to VP Product at NBFCs are the ones who can draw the causal chain from "we launch UPI AutoPay by default" to "PSR improves by 3pp" to "DPD 1–30 reduces by 1pp" to "credit cost reduces by ₹8 crore annually."
+        </div>
+
+        <!-- Block 11A: AI impact quantification table -->
+        <div class="comparison-table">
+          <table class="eval-table">
+            <thead><tr><th>NBFC metric</th><th>Current industry range</th><th>AI impact (proven, 2024–2025)</th><th>AI impact (projected, 2026–2027)</th></tr></thead>
+            <tbody>
+              <tr><td>Cost of acquisition (CAC)</td><td>₹800–2,500 per customer (digital channel)</td><td>AI-powered lead scoring reduces CAC by 15–25% by focusing spend on high-conversion segments</td><td>OCEN 4.0 + AI matching reduces CAC to ₹300–600 for embedded lending channels (DLG 2025 multi-lender model enables this)</td></tr>
+              <tr><td>Underwriting accuracy (Gini coefficient)</td><td>0.35–0.55 (traditional scorecard)</td><td>GBM + AA cash flow data improves Gini by 8–15 points. NBFCs with AA integration report 20–30% reduction in first-payment default</td><td>Hybrid ensemble (LR + GBM + AA features) targeting Gini 0.55–0.65. LLM-augmented MSME scoring adds 3–5 Gini points on thin-file segments</td></tr>
+              <tr><td>Loan processing time (TAT)</td><td>24–72 hours (traditional); 2–15 minutes (digital-first NBFCs)</td><td>AI document classification + auto-underwriting reduces TAT to &lt;5 minutes for 60–70% of applications (clean cases with bureau + AA data available)</td><td>Target: &lt;2 minutes for 80% of applications. Remaining 20% (complex, edge cases) routed to human underwriters with AI-prepared case summaries</td></tr>
+              <tr><td>Collection efficiency (resolution rate)</td><td>60–75% for DPD 1–30; 30–50% for DPD 31–90</td><td>AI-powered collections strategy (optimal time, channel, message) improves DPD 1–30 resolution by 5–10pp. Voice analytics for agent coaching adds 3–5pp</td><td>Predictive early warning (AA recurring consent + behavioural signals) enables pre-delinquency intervention. Target: shift 15–20% of would-be DPD cases to pre-emptive restructuring</td></tr>
+              <tr><td>GNPA ratio</td><td>2.5–6% (NBFC-ICC); 4–12% (MFI/SFB)</td><td>AI-augmented underwriting reduces incremental GNPA by 50–100 bps on new vintage. Collections AI reduces flow-rate from DPD 90 → NPA by 10–15%</td><td>Combined underwriting + collections AI impact: 80–150 bps GNPA reduction on the overall portfolio over 18–24 months (NBFC sector growing 17% annually vs 12% banks)</td></tr>
+              <tr><td>Operational cost ratio</td><td>3–5% of AUM (traditional NBFC); 1.5–3% (digital-first)</td><td>AI automation of servicing (chatbot, MITC generation, document processing) reduces operational cost by 15–25% on addressable tasks</td><td>Target: &lt;2% opex ratio for digital-first NBFCs. AI copilots for credit analysts and collections agents augment productivity by 30–40% without headcount increase</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Block 11B: AI investment prioritisation framework -->
+        <div class="fund-avoid-monitor">
+          <div class="fam-fund">
+            <strong>Fund now</strong>
+            <ul>
+              <li><strong>Underwriting:</strong> AA cash-flow integration + GBM ensemble. Highest-confidence ROI — proven 8–15 Gini point improvement, 20–30% first-payment default reduction. Board-level justification per RBI FREE-AI</li>
+              <li><strong>Collections:</strong> AI-powered strategy optimisation (time, channel, message). Voice analytics for agent coaching. 5–10pp resolution improvement on DPD 1–30 is directly measurable in credit cost reduction</li>
+              <li><strong>Document processing:</strong> automated classification, extraction, and MITC generation. High-volume, repetitive, low-risk. The fastest path to operational cost reduction</li>
+            </ul>
+          </div>
+          <div class="fam-avoid">
+            <strong>Avoid</strong>
+            <ul>
+              <li><strong>Autonomous credit decisioning:</strong> no AI system should make a final loan approval without human review. DLG 2025 mandates this. The regulatory risk outweighs any TAT benefit</li>
+              <li><strong>Customer-facing agents without guardrails:</strong> an AI chatbot that can promise loan terms, waive charges, or provide regulatory guidance without safety gates is a compliance incident waiting to happen</li>
+              <li><strong>Multi-agent architectures for core lending:</strong> MAST study failure rates (41–86.7%) make multi-agent systems untenable for regulated financial flows. Use deterministic workflows + agent nodes instead</li>
+            </ul>
+          </div>
+          <div class="fam-monitor">
+            <strong>Monitor</strong>
+            <ul>
+              <li><strong>LLM-augmented MSME scoring:</strong> promising for thin-file segments but hallucination risk on numerical extraction (4%+ error rate) requires robust eval infrastructure before production deployment</li>
+              <li><strong>Predictive early warning systems:</strong> AA recurring consent + behavioural signals for pre-delinquency intervention. Data pipeline is maturing; product-market fit is still being proven</li>
+              <li><strong>Voice analytics at scale:</strong> real-time agent coaching and sentiment analysis. Q3 FY26: pilots entering enterprise deployment at top 10 NBFCs. Watch for ROI validation before scaling</li>
+              <li><strong>On-premise LLM deployment:</strong> DPDP 2025 may force data sovereignty requirements that make on-premise attractive. Monitor Phase 2 (November 2026) consent manager requirements</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Block 11C: Synthesis -->
+        <div class="synthesis-block">
+          <strong>Synthesis:</strong> The highest-confidence AI ROI in Indian NBFCs is in underwriting (AA + ensemble scoring) and origination automation (document processing + auto-decisioning for clean cases). The lowest confidence is in autonomous decisioning and multi-agent architectures — where the regulatory and reliability risks outweigh the benefits. The NBFC sector's 17% annual growth (vs 12% for banks) means the AI opportunity is growing faster than the risk appetite. PMs who can quantify AI impact in the language of GNPA reduction, credit cost saving, and opex ratio improvement — not just "model accuracy" — are the ones who will secure board-level AI investment budgets.
         </div>
       </section>
 
